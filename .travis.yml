@@ -4,6 +4,8 @@ matrix:
   include:
   - env: PROJECT=ikweb/
     node_js: lts
+    before_install:
+      - chmod +x .travis/project-has-new-commits.sh
     on:
       branch: develop
   - stage: Deploy
