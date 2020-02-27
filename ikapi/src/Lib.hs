@@ -10,6 +10,7 @@ import Data.Aeson
 import Data.Aeson.TH
 import Network.Wai
 import Network.Wai.Handler.Warp
+import Network.Wai.Logger ( withStdoutLogger )
 import Servant
 
 data User = User
@@ -23,7 +24,9 @@ $(deriveJSON defaultOptions ''User)
 type API = "users" :> Get '[JSON] [User]
 
 startApp :: IO ()
-startApp = run 8080 app
+startApp = withStdoutLogger $ \aplogger -> do
+        let settings = setPort 8080 $ setLogger aplogger defaultSettings
+        runSettings settings app
 
 app :: Application
 app = serve api server
