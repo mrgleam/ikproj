@@ -4,6 +4,9 @@ matrix:
   include:
   - env: PROJECT=ikweb/
     node_js: lts
+    cache:
+      directories:
+        - node_modules
     before_install:
       - chmod +x .travis/project-has-new-commits.sh
     on:

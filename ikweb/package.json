@@ -11,6 +11,8 @@
     "react-scripts": "3.4.0"
   },
   "scripts": {
+    "clean-force": "npm cache clean --force",
+    "remove-modules": "rm -rf node_modules",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
