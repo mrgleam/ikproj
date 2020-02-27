@@ -3,11 +3,11 @@ version:             0.1.0.0
 -- synopsis:
 -- description:
 homepage:            https://github.com/githubuser/ikapi#readme
-license:             BSD3
+license:             MIT
 license-file:        LICENSE
-author:              Author name here
-maintainer:          example@example.com
-copyright:           2020 Author name here
+author:              Santi Lertsumran
+maintainer:          santi@inslash.com
+copyright:           2020 Santi Lertsumran
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
