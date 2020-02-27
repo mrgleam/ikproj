@@ -7,7 +7,7 @@ build:
 test:
 	npm run test:coverage
 
-deploy-develop: install build test
+test-develop: install test
 	@echo "Deploying ik-web for develop environment" && printf '%*s\n' "40" '' | tr ' ' -
 
 # .PHONY is used for reserving tasks words
