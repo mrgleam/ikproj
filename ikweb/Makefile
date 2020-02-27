@@ -5,7 +5,7 @@ build:
 	npm run build
 
 test:
-	npm run test-ci
+	npm run test:coverage
 
 deploy-develop: install build test
 	@echo "Deploying ik-web for develop environment" && printf '%*s\n' "40" '' | tr ' ' -

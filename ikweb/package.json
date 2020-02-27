@@ -15,7 +15,8 @@
     "remove-modules": "rm -rf node_modules",
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test-ci": "CI=true react-scripts test --env=jsdom",
+    "test:ci": "CI=true react-scripts test --env=jsdom",
+    "test:coverage": "npm run test:ci -- --coverage",
     "test": "react-scripts test",
     "audit-fix": "npm audit fix",
     "eject": "react-scripts eject"
