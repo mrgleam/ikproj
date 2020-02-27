@@ -4,15 +4,10 @@ matrix:
   include:
   - env: PROJECT=ikweb/
     node_js: lts
-    cache:
-      directories:
-        - node_modules
-    script:
-      - npm test
     on:
       branch: develop
   - stage: Deploy
     script: echo DEPLOYING!
 
 before_script: echo $TRAVIS_COMMIT_RANGE
-script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && npm run test; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make deploy-$TRAVIS_BRANCH; else echo "NO CHANGES SINCE LAST COMMIT"; fi
