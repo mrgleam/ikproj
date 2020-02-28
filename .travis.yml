@@ -18,21 +18,16 @@ matrix:
       - mkdir -p ~/.local/bin
       - export PATH=$HOME/.local/bin:$PATH
       - travis_retry curl -sSL https://get.haskellstack.org/ | sh
-  - stage: Deploy
-    script:
-      - echo DEPLOYING!
-      - make release
 
 before_script: 
   - echo $TRAVIS_COMMIT_RANGE
   - chmod +x .travis/project-has-new-commits.sh
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
-# before_deploy: chmod +x .travis/project-has-new-commits.sh
-# deploy:
-#   provider: script
-#   script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make release && cd ..; else echo "NO CHANGES SINCE LAST COMMIT"; fi
-#   on:
-#     branch: 
-#       - master
-#       - develop
+deploy:
+  provider: script
+  script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make release && cd ..; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+  on:
+    branch: 
+      - master
+      - develop

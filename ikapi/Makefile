@@ -26,6 +26,8 @@ release: build-dependencies
 	docker build --build-arg BINARY_PATH=${BINARY_PATH} -t ${IMAGE}:${VERSION} -f Dockerfile .
 	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
 	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+	docker push ${IMAGE}:${VERSION}
+	docker push ${IMAGE}:latest
 
 # Stop task will kill process by ID stored in PID_FILE (and all child processes by pstree).
 stop:
