@@ -12,9 +12,9 @@ test:
 	npm run test:coverage
 
 release:
-	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker build -t ${IMAGE}:${VERSION} -f Dockerfile .
 	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker push ${IMAGE}:${VERSION}
 	docker push ${IMAGE}:latest
 
