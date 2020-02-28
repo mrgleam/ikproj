@@ -9,9 +9,8 @@ matrix:
     cache:
       directories:
         - node_modules
-    before_install:
-      - chmod +x .travis/project-has-new-commits.sh
 
+before_install: chmod +x .travis/project-has-new-commits.sh
 before_script: echo $TRAVIS_COMMIT_RANGE
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-$TRAVIS_BRANCH; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
