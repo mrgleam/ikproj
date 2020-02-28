@@ -9,17 +9,19 @@ matrix:
     cache:
       directories:
         - node_modules
+    before_install:
+      - chmod +x .travis/project-has-new-commits.sh
   - env: PROJECT=ikapi/
     cache:
       directories:
         - $HOME/.stack
     before_install:
+      - chmod +x .travis/project-has-new-commits.sh
       # Download and unpack the stack executable
       - mkdir -p ~/.local/bin
       - export PATH=$HOME/.local/bin:$PATH
       - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tr.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
-before_install: chmod +x .travis/project-has-new-commits.sh
 before_script: echo $TRAVIS_COMMIT_RANGE
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
