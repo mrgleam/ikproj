@@ -22,12 +22,15 @@ test-ci: build-dependencies test
 
 release: build-dependencies
 	stack --no-terminal test --haddock --no-haddock-deps
-	BINARY_PATH=".stack-work/dist/x86_64-linux/Cabal-2.4.0.1/build/ikapi-exe/ikapi-exe"
-	docker build --build-arg BINARY_PATH=${BINARY_PATH} -t ${IMAGE}:${VERSION} -f Dockerfile .
+	docker build --build-arg BINARY_PATH=".stack-work/dist/x86_64-linux/Cabal-2.4.0.1/build/ikapi-exe/ikapi-exe" -t ${IMAGE}:${VERSION} -f Dockerfile .
 	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
 	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker push ${IMAGE}:${VERSION}
 	docker push ${IMAGE}:latest
+
+release-osx: build-dependencies
+	stack --no-terminal test --haddock --no-haddock-deps
+	docker build --build-arg BINARY_PATH=".stack-work/dist/x86_64-osx/Cabal-2.4.0.1/build/ikapi-exe/ikapi-exe" -t ${IMAGE}:${VERSION} -f Dockerfile .
 
 # Stop task will kill process by ID stored in PID_FILE (and all child processes by pstree).
 stop:
