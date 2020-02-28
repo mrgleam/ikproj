@@ -19,7 +19,7 @@ release:
 	docker push ${IMAGE}:latest
 
 test-develop: install test
-	@echo "Deploying ik-web for develop environment" && printf '%*s\n' "40" '' | tr ' ' -
+	@echo "Testing ik-web" && printf '%*s\n' "40" '' | tr ' ' -
 
 # .PHONY is used for reserving tasks words
 .PHONY: test build test-develop release
