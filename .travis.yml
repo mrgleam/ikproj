@@ -9,25 +9,23 @@ matrix:
     cache:
       directories:
         - node_modules
-    before_install:
-      - chmod +x .travis/project-has-new-commits.sh
   - env: PROJECT=ikapi/
     cache:
       directories:
         - $HOME/.stack
     before_install:
-      - chmod +x .travis/project-has-new-commits.sh
       # Download and unpack the stack executable
       - mkdir -p ~/.local/bin
       - export PATH=$HOME/.local/bin:$PATH
-      - travis_retry curl -L https://get.haskellstack.org/stable/linux-x86_64.tr.gz | tar xvf --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+      - travis_retry curl -sSL https://get.haskellstack.org/ | sh
 
+before_install: chmod +x .travis/project-has-new-commits.sh
 before_script: echo $TRAVIS_COMMIT_RANGE
-script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci && cd ..; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
 deploy:
   provider: script
-  script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then make release; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+  script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make release && cd ..; else echo "NO CHANGES SINCE LAST COMMIT"; fi
   on:
     branch: 
       - master
