@@ -1,3 +1,6 @@
+sudo: enabled
+services:
+  - docker
 language: generic
 
 matrix:
@@ -10,7 +13,11 @@ matrix:
     before_install:
       - chmod +x .travis/project-has-new-commits.sh
   - stage: Deploy
-    script: echo DEPLOYING!
+    script:
+      - echo DEPLOYING!
+      - docker build -t mathsermone/$PROJECT -f $PROJECT/Dockerfile .
+      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - docker push mathsermone/$PROJECT
 
 before_script: echo $TRAVIS_COMMIT_RANGE
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-$TRAVIS_BRANCH; else echo "NO CHANGES SINCE LAST COMMIT"; fi
