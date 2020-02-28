@@ -1,3 +1,7 @@
+IMAGE := mathsermone/ikapi
+# Getting the version out of the package.yml file
+VERSION := $(shell cat package.yaml | grep version | cut -d ' ' -f 2)
+
 # Variable for filename for store running procees id
 PID_FILE = /tmp/ikapi.pid
 
@@ -18,6 +22,9 @@ test-ci: build-dependencies test
 
 release: build-dependencies
 	stack --no-terminal test --haddock --no-haddock-deps
+	BINARY_PATH=".stack-work/dist/x86_64-linux/Cabal-2.4.0.1/build/ikapi-exe/ikapi-exe"
+	docker build --build-arg BINARY_PATH=${BINARY_PATH} -t ${IMAGE}:${VERSION} -f Dockerfile .
+	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
 	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 
 # Stop task will kill process by ID stored in PID_FILE (and all child processes by pstree).

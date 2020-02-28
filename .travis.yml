@@ -24,10 +24,9 @@ before_script:
   - chmod +x .travis/project-has-new-commits.sh
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci && cd ..; else echo "NO CHANGES SINCE LAST COMMIT"; fi
 
+before_deploy: chmod +x .travis/project-has-new-commits.sh
 deploy:
   provider: script
-  before_script:
-    - chmod +x .travis/project-has-new-commits.sh
   script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make release && cd ..; else echo "NO CHANGES SINCE LAST COMMIT"; fi
   on:
     branch: 
