@@ -1,6 +1,6 @@
 IMAGE := mathsermone/ikapi
 # Getting the version out of the package.yml file
-VERSION := $(shell cat package.yaml | grep version | cut -d ' ' -f 2)
+VERSION := $(shell cat ikapi.cabal | grep version | head -1 | awk -F: '{ print $$2 }' | sed 's/[", ]//g')
 
 # Variable for filename for store running procees id
 PID_FILE = /tmp/ikapi.pid
