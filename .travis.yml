@@ -1,4 +1,3 @@
-sudo: false
 services:
   - docker
 language: generic
@@ -12,12 +11,11 @@ matrix:
         - node_modules
     before_install:
       - chmod +x .travis/project-has-new-commits.sh
-  - stage: Deploy
-    script:
-      - echo DEPLOYING!
-      - cd $PROJECT && make release
 
-before_script:
-  - echo $TRAVIS_COMMIT_RANGE
-  - echo $PROJECT
+before_script: echo $TRAVIS_COMMIT_RANGE
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-$TRAVIS_BRANCH; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+
+deploy:
+  provider: script
+  script: cd $PROJECT && make release
+  skip_cleanup: true
