@@ -18,6 +18,7 @@ test-ci: build-dependencies test
 
 release: build-dependencies
 	stack --no-terminal test --haddock --no-haddock-deps
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 
 # Stop task will kill process by ID stored in PID_FILE (and all child processes by pstree).
 stop:
