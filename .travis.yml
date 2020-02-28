@@ -19,3 +19,7 @@ deploy:
   provider: script
   script: cd $PROJECT && make release
   skip_cleanup: true
+  on:
+    branch: 
+      - master
+      - develop
