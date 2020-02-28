@@ -18,8 +18,8 @@ release:
 	docker push ${IMAGE}:${VERSION}
 	docker push ${IMAGE}:latest
 
-test-develop: install test
+test-ci: install test
 	@echo "Testing ik-web" && printf '%*s\n' "40" '' | tr ' ' -
 
 # .PHONY is used for reserving tasks words
-.PHONY: test build test-develop release
+.PHONY: test build test-ci release

@@ -10,6 +10,15 @@ start-dev: build
 test:
 	stack test
 
+build-dependencies:
+	stack --no-terminal --install-ghc test --only-dependencies
+
+test-ci: build-dependencies test
+	@echo "Testing ik-api" && printf '%*s\n' "40" '' | tr ' ' -
+
+release: build-dependencies
+	stack --no-terminal test --haddock --no-haddock-deps
+
 # Stop task will kill process by ID stored in PID_FILE (and all child processes by pstree).
 stop:
 	-kill `pstree -p \`cat $(PID_FILE)\` | tr "\n" " " |sed "s/[^0-9]/ /g" |sed "s/\s\s*/ /g"`
@@ -33,4 +42,4 @@ test-watch: test
 	xargs -n1 -I {} make restart-test
 
 # .PHONY is used for reserving tasks words
-.PHONY: test-watch test serve-dev
+.PHONY: test-watch test serve-dev test-ci release
