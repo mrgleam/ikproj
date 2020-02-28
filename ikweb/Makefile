@@ -1,6 +1,6 @@
 IMAGE := mathsermone/ikweb
 # Getting the version out of the package.yml file
-VERSION := $(shell cat package.json | grep version | head -1 | awk -F: '{ print $$2 }' | sed 's/[",]//g')
+VERSION := $(shell cat package.json | grep version | head -1 | awk -F: '{ print $$2 }' | sed 's/[", ]//g')
 
 install:
 	npm install
