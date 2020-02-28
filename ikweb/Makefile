@@ -15,11 +15,11 @@ release:
 	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker build -t ${IMAGE}:${VERSION} -f Dockerfile .
 	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
-  docker push ${IMAGE}:${VERSION}
+	docker push ${IMAGE}:${VERSION}
 	docker push ${IMAGE}:latest
 
 test-develop: install test
 	@echo "Deploying ik-web for develop environment" && printf '%*s\n' "40" '' | tr ' ' -
 
 # .PHONY is used for reserving tasks words
-.PHONY: test build deploy-develop release
+.PHONY: test build test-develop release
