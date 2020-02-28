@@ -3,7 +3,8 @@ RUN mkdir -p /opt/ikapi/
 ARG BINARY_PATH
 WORKDIR /opt/ikapi
 RUN apt-get update && apt-get install -y \
-  ca-certificates
+  ca-certificates \
+  libgmp-dev
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 COPY "$BINARY_PATH" /opt/ikapi
