@@ -17,6 +17,15 @@ import Servant
 import Servant.Auth.Server
 import Control.Monad.IO.Class ( liftIO )
 import GHC.Generics ( Generic )
+import Data.Time
+
+future :: UTCTime
+future = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2020-02-29"
+
+cookieCfg :: CookieSettings
+cookieCfg = def
+  { cookieExpires     = Just future
+  }
 
 data Login = Login { username :: String, password :: String }
         deriving (Eq, Show, Read, Generic)
@@ -35,8 +44,18 @@ checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
      Just applyCookies -> return $ applyCookies NoContent
 checkCreds _ _ _ = throwError err401
 
+getLogout
+  :: Handler
+       ( Headers
+           '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
+           NoContent
+       )
+getLogout = return $ clearSession cookieCfg NoContent
+
 type Protected = "name" :> Get '[JSON] String
                 :<|> "email" :> Get '[JSON] String
+                :<|> "logout" :> Get '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
+                                            , Header "Set-Cookie" SetCookie ] NoContent)
 
 type Unprotected =
   "login"
@@ -48,7 +67,7 @@ type Unprotected =
 
 protected :: AuthResult User -> Server Protected
 protected (Authenticated user) =
-  return (userFirstName user) :<|> return (userLastName user)
+  return (userFirstName user) :<|> return (userLastName user) :<|> getLogout
 protected _ = throwAll err401
 
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
@@ -78,6 +97,6 @@ startApp = withStdoutLogger $ \aplogger -> do
   let settings = setPort 8080 $ setLogger aplogger defaultSettings
   myKey <- generateKey
   let jwtCfg = defaultJWTSettings myKey
-      cfg    = defaultCookieSettings :. jwtCfg :. EmptyContext
+      cfg    = cookieCfg :. jwtCfg :. EmptyContext
       api    = Proxy :: Proxy (API '[JWT])
-  runSettings settings $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
+  runSettings settings $ serveWithContext api cfg (server cookieCfg jwtCfg)
