@@ -6,7 +6,10 @@
 {-# LANGUAGE DeriveGeneric     #-}
 
 module Lib
-    ( startApp) where
+    (
+      startApp,
+      app
+    ) where
 
 import Data.Aeson
 import Data.Aeson.TH
@@ -24,7 +27,8 @@ future = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2020-02-29"
 
 cookieCfg :: CookieSettings
 cookieCfg = def
-  { cookieExpires     = Just future
+  {
+    cookieExpires     = Just future
   }
 
 data Login = Login { username :: String, password :: String }
@@ -92,11 +96,17 @@ server :: CookieSettings -> JWTSettings -> Server (API auths)
 server cs jwts =
   protected :<|> unprotected cs jwts
 
+api :: Proxy (API '[JWT])
+api = Proxy
+
+app :: Context '[CookieSettings, JWTSettings] -> JWTSettings -> Application
+app cfg jwtCfg = serveWithContext api cfg (server cookieCfg jwtCfg)
+
 startApp :: IO ()
-startApp = withStdoutLogger $ \aplogger -> do
-  let settings = setPort 8080 $ setLogger aplogger defaultSettings
+startApp = do
   myKey <- generateKey
   let jwtCfg = defaultJWTSettings myKey
       cfg    = cookieCfg :. jwtCfg :. EmptyContext
-      api    = Proxy :: Proxy (API '[JWT])
-  runSettings settings $ serveWithContext api cfg (server cookieCfg jwtCfg)
+  withStdoutLogger $ \aplogger -> do
+    let settings = setPort 8080 $ setLogger aplogger defaultSettings
+    runSettings settings $ app cfg jwtCfg
