@@ -8,7 +8,6 @@
 module Lib
     (
       startApp,
-      app
     ) where
 
 import Data.Aeson
@@ -22,14 +21,8 @@ import Control.Monad.IO.Class ( liftIO )
 import GHC.Generics ( Generic )
 import Data.Time
 
-future :: UTCTime
-future = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2020-02-29"
-
-cookieCfg :: CookieSettings
-cookieCfg = def
-  {
-    cookieExpires     = Just future
-  }
+addMinutes :: NominalDiffTime -> UTCTime -> UTCTime
+addMinutes minutes = addUTCTime (minutes * 60)
 
 data Login = Login { username :: String, password :: String }
         deriving (Eq, Show, Read, Generic)
@@ -54,7 +47,7 @@ getLogout
            '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
            NoContent
        )
-getLogout = return $ clearSession cookieCfg NoContent
+getLogout = return $ clearSession defaultCookieSettings NoContent
 
 type Protected = "name" :> Get '[JSON] String
                 :<|> "email" :> Get '[JSON] String
@@ -99,14 +92,14 @@ server cs jwts =
 api :: Proxy (API '[JWT])
 api = Proxy
 
-app :: Context '[CookieSettings, JWTSettings] -> JWTSettings -> Application
-app cfg jwtCfg = serveWithContext api cfg (server cookieCfg jwtCfg)
-
 startApp :: IO ()
 startApp = do
+  t <- getCurrentTime
+  let tAdd1Day = addMinutes 1440 t
+  let cookieCfg = def{cookieExpires = Just tAdd1Day}
   myKey <- generateKey
   let jwtCfg = defaultJWTSettings myKey
-      cfg    = cookieCfg :. jwtCfg :. EmptyContext
+      cfg    = cookieCfg:. jwtCfg :. EmptyContext
   withStdoutLogger $ \aplogger -> do
     let settings = setPort 8080 $ setLogger aplogger defaultSettings
-    runSettings settings $ app cfg jwtCfg
+    runSettings settings $ serveWithContext api cfg (server cookieCfg jwtCfg)
