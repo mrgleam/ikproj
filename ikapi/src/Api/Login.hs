@@ -34,6 +34,7 @@ import           Control.Monad.Metrics          ( increment
 import           Data.IORef                     ( readIORef )
 import           Data.HashMap.Lazy              ( HashMap )
 import           Data.Text                      ( Text )
+import qualified Data.Text                     as T
 import           Lens.Micro                     ( (^.) )
 import           Models                         ( User(User)
                                                 , runDb
@@ -42,6 +43,13 @@ import           Models                         ( User(User)
                                                 )
 import qualified Models                        as Md
 import qualified System.Metrics.Counter        as Counter
+import           Crypto.KDF.BCrypt              ( hashPassword
+                                                , validatePassword
+                                                )
+import qualified Data.ByteString.Char8         as B
+
+-- TODO: belongs in config
+hashIterations = 12         -- 15 =~ 6 sec
 
 checkCreds
   :: MonadIO m => CookieSettings
@@ -69,17 +77,28 @@ checkCreds cookieSettings jwtSettings login = do
               Just applyCookies -> return $ applyCookies NoContent
 checkCreds _ _ _ = throwError err401
 
+signUp :: MonadIO m => Login -> AppT m Int64
+signUp (Login e p) = do
+  increment "signup"
+  logDebugNS "web" "signup"
+  newUser <- runDb . insert $ User e e
+  hashed <- liftIO $ hashPassword hashIterations (B.pack p)
+  newUser' <- runDb . insert $ Md.UserPassword newUser $ B.unpack hashed
+  return $ fromSqlKey newUser'
+
 type Unprotected =
-          "login"
-    :> ReqBody '[JSON] Login
-    :> Verb 'POST 204 '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
+            "login"
+            :> ReqBody '[JSON] Login
+            :> Verb 'POST 204 '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
                                         , Header "Set-Cookie" SetCookie]
                                         NoContent)
+      :<|> "signup" :> ReqBody '[JSON] Login
+            :> Post '[JSON] Int64
 
 unprotected :: MonadIO m => CookieSettings -> JWTSettings -> ServerT Unprotected (AppT m)
-unprotected cs jwts = checkCreds cs jwts
+unprotected cs jwts = checkCreds cs jwts :<|> signUp
 
-data Login = Login { username :: Text, password :: Text }
+data Login = Login { username :: Text, password :: String }
         deriving (Eq, Show, Read, Generic)
 
 $(deriveJSON defaultOptions ''Login)

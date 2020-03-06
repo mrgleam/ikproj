@@ -42,6 +42,12 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 User json
     name Text
     email Text
+    UniqueEmail email
+    deriving Show Eq
+
+UserPassword json
+    user      UserId
+    passHash  String
     deriving Show Eq
 |]
 
