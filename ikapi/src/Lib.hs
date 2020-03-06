@@ -1,105 +1,87 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeOperators     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveFunctor     #-}
-{-# LANGUAGE DeriveGeneric     #-}
 
-module Lib
-    (
-      startApp,
-    ) where
+module Lib where
 
-import Data.Aeson
-import Data.Aeson.TH
-import Network.Wai
-import Network.Wai.Handler.Warp
-import Network.Wai.Logger ( withStdoutLogger )
-import Servant
-import Servant.Auth.Server
-import Control.Monad.IO.Class ( liftIO )
-import GHC.Generics ( Generic )
-import Data.Time
+import           Prelude
 
-addMinutes :: NominalDiffTime -> UTCTime -> UTCTime
-addMinutes minutes = addUTCTime (minutes * 60)
+import           Control.Concurrent             ( MVar
+                                                , ThreadId
+                                                , forkIO
+                                                , killThread
+                                                , newEmptyMVar
+                                                , putMVar
+                                                , takeMVar
+                                                )
+import           Control.Exception              ( finally )
+import           Control.Monad                  ( (>=>) )
+import           Data.IORef                     ( IORef
+                                                , newIORef
+                                                , readIORef
+                                                , writeIORef
+                                                )
+import           Foreign.Store                  ( Store(..)
+                                                , lookupStore
+                                                , readStore
+                                                , storeAction
+                                                , withStore
+                                                )
+import           GHC.Word                       ( Word32 )
+import           Init                           ( runApp )
 
-data Login = Login { username :: String, password :: String }
-        deriving (Eq, Show, Read, Generic)
+-- | Start or restart the server.
+-- newStore is from foreign-store.
+-- A Store holds onto some data across ghci reloads
+update :: IO ()
+update = do
+  mtidStore <- lookupStore tidStoreNum
+  case mtidStore of
+    -- no server running
+    Nothing -> do
+      done <- storeAction doneStore newEmptyMVar
+      tid  <- start done
+      _    <- storeAction (Store tidStoreNum) (newIORef tid)
+      return ()
+    -- server is already running
+    Just tidStore -> restartAppInNewThread tidStore
+ where
+  doneStore :: Store (MVar ())
+  doneStore = Store 0
 
-$(deriveJSON defaultOptions ''Login)
+  -- shut the server down with killThread and wait for the done signal
+  restartAppInNewThread :: Store (IORef ThreadId) -> IO ()
+  restartAppInNewThread tidStore = modifyStoredIORef tidStore $ \tid -> do
+    killThread tid
+    withStore doneStore takeMVar
+    readStore doneStore >>= start
 
-checkCreds :: CookieSettings -> JWTSettings -> Login
-  -> Handler (Headers '[ Header "Set-Cookie" SetCookie
-                       , Header "Set-Cookie" SetCookie]
-                       NoContent)
-checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
-   let usr = User 1 "Ali Baba" "ali@email.com"
-   mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings usr
-   case mcookie of
-     Nothing     -> throwError err401
-     Just applyCookies -> return $ applyCookies NoContent
-checkCreds _ _ _ = throwError err401
 
-getLogout
-  :: Handler
-       ( Headers
-           '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie]
-           NoContent
-       )
-getLogout = return $ clearSession defaultCookieSettings NoContent
+  -- | Start the server in a separate thread.
+  start
+    :: MVar () -- ^ Written to when the thread is killed.
+    -> IO ThreadId
+  start done = forkIO
+    (finally runApp
+                      -- Note that this implies concurrency
+                      -- between shutdownApp and the next app that is starting.
+                      -- Normally this should be fine
+             (putMVar done ())
+    )
 
-type Protected = "name" :> Get '[JSON] String
-                :<|> "email" :> Get '[JSON] String
-                :<|> "logout" :> Get '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
-                                            , Header "Set-Cookie" SetCookie ] NoContent)
+-- | kill the server
+shutdown :: IO ()
+shutdown = do
+  mtidStore <- lookupStore tidStoreNum
+  case mtidStore of
+    -- no server running
+    Nothing       -> putStrLn "no app running"
+    Just tidStore -> do
+      withStore tidStore $ readIORef >=> killThread
+      putStrLn "App is shutdown"
 
-type Unprotected =
-  "login"
-    :> ReqBody '[JSON] Login
-    :> Verb 'POST 204 '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
-                                        , Header "Set-Cookie" SetCookie]
-                                        NoContent) 
-    :<|> Raw
+tidStoreNum :: Word32
+tidStoreNum = 1
 
-protected :: AuthResult User -> Server Protected
-protected (Authenticated user) =
-  return (userFirstName user) :<|> return (userLastName user) :<|> getLogout
-protected _ = throwAll err401
-
-unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
-unprotected cs jwts =
-  checkCreds cs jwts :<|> serveDirectoryFileServer "static"
-
-data User = User
-  { userId        :: Int
-  , userFirstName :: String
-  , userLastName  :: String
-  } deriving (Eq, Show, Read, Generic)
-
-instance ToJWT User
-instance FromJWT User
-
-$(deriveJSON defaultOptions ''User)
-
-type API auths = (Auth auths User :> Protected)
-                  :<|> Unprotected
-
-server :: CookieSettings -> JWTSettings -> Server (API auths)
-server cs jwts =
-  protected :<|> unprotected cs jwts
-
-api :: Proxy (API '[JWT])
-api = Proxy
-
-startApp :: IO ()
-startApp = do
-  t <- getCurrentTime
-  let tAdd1Day = addMinutes 1440 t
-  let cookieCfg = def{cookieExpires = Just tAdd1Day}
-  myKey <- generateKey
-  let jwtCfg = defaultJWTSettings myKey
-      cfg    = cookieCfg:. jwtCfg :. EmptyContext
-  withStdoutLogger $ \aplogger -> do
-    let settings = setPort 8080 $ setLogger aplogger defaultSettings
-    runSettings settings $ serveWithContext api cfg (server cookieCfg jwtCfg)
+modifyStoredIORef :: Store (IORef a) -> (a -> IO a) -> IO ()
+modifyStoredIORef store f = withStore store $ \ref -> do
+  v <- readIORef ref
+  f v >>= writeIORef ref

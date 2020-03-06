@@ -15,16 +15,43 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
+  exposed-modules:     Init
+                     , Lib
+                     , Api
+                     , Api.Login
+                     , Api.User
+                     , Logger
+                     , Config
+                     , Models
   build-depends:       base >= 4.7 && < 5
                      , aeson
+                     , bytestring
+                     , transformers
                      , servant-server
                      , servant-auth
                      , servant-auth-server
                      , wai
+                     , wai-extra
+                     , wai-middleware-metrics
                      , wai-logger
                      , warp
                      , time
+                     , text
+                     , fast-logger
+                     , katip
+                     , monad-logger
+                     , monad-metrics
+                     , mtl
+                     , persistent
+                     , persistent-postgresql
+                     , persistent-template
+                     , ekg
+                     , ekg-core
+                     , microlens
+                     , unordered-containers
+                     , resource-pool
+                     , safe
+                     , foreign-store
   default-language:    Haskell2010
 
 executable ikapi-exe
