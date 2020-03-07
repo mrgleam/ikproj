@@ -40,6 +40,7 @@ import           Models                         ( User(User)
                                                 , runDb
                                                 , userEmail
                                                 , userName
+                                                , userPasswordPassHash
                                                 )
 import qualified Models                        as Md
 import qualified System.Metrics.Counter        as Counter
@@ -55,7 +56,7 @@ checkCreds
   :: MonadIO m => CookieSettings
   -> JWTSettings
   -> Login
-  -> AppT m 
+  -> AppT m
        ( Headers
            '[Header "Set-Cookie" SetCookie, Header
              "Set-Cookie"
@@ -65,16 +66,23 @@ checkCreds
 checkCreds cookieSettings jwtSettings login = do
   increment "login"
   logDebugNS "web" "login"
-  maybeUser <- runDb (selectFirst [Md.UserName ==. username login] [])
+  maybeUser <- runDb (selectFirst [Md.UserEmail ==. username login] [])
   case maybeUser of
       Nothing -> throwError err401
       Just person -> do
             let id = fromSqlKey . entityKey $ person
-            let dataClaims = Md.DataClaims id (username login)
-            mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings dataClaims
-            case mcookie of
-              Nothing           -> throwError err401
-              Just applyCookies -> return $ applyCookies NoContent
+            maybeUserPassword <- runDb (selectFirst [Md.UserPasswordUser ==. entityKey person] [])
+            case maybeUserPassword of
+              Nothing -> throwError err401
+              Just pass -> do
+                let p = entityVal pass
+                if validatePassword (B.pack (password login)) (B.pack (userPasswordPassHash p))
+                    then do let dataClaims = Md.DataClaims id (username login)
+                            mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings dataClaims
+                            case mcookie of
+                                Nothing           -> throwError err401
+                                Just applyCookies -> return $ applyCookies NoContent
+                    else throwError err401
 checkCreds _ _ _ = throwError err401
 
 signUp :: MonadIO m => Login -> AppT m Int64
