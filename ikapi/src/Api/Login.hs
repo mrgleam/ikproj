@@ -40,7 +40,7 @@ import           Models                         ( User(User)
                                                 , runDb
                                                 , userEmail
                                                 , userName
-                                                , userPasswordPassHash
+                                                , credentialPassHash
                                                 )
 import qualified Models                        as Md
 import qualified System.Metrics.Counter        as Counter
@@ -71,12 +71,12 @@ checkCreds cookieSettings jwtSettings login = do
       Nothing -> throwError err401
       Just person -> do
             let id = fromSqlKey . entityKey $ person
-            maybeUserPassword <- runDb (selectFirst [Md.UserPasswordUser ==. entityKey person] [])
+            maybeUserPassword <- runDb (selectFirst [Md.CredentialUser ==. entityKey person] [])
             case maybeUserPassword of
               Nothing -> throwError err401
               Just pass -> do
                 let p = entityVal pass
-                if validatePassword (B.pack (password login)) (B.pack (userPasswordPassHash p))
+                if validatePassword (B.pack (password login)) (B.pack (credentialPassHash p))
                     then do let dataClaims = Md.DataClaims id (username login)
                             mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings dataClaims
                             case mcookie of
@@ -91,7 +91,7 @@ signUp (Login e p) = do
   logDebugNS "web" "signup"
   newUser <- runDb . insert $ User e e
   hashed <- liftIO $ hashPassword hashIterations (B.pack p)
-  newUser' <- runDb . insert $ Md.UserPassword newUser $ B.unpack hashed
+  newUser' <- runDb . insert $ Md.Credential newUser $ B.unpack hashed
   return $ fromSqlKey newUser'
 
 type Unprotected =

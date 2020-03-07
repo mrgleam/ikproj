@@ -45,7 +45,7 @@ User json
     UniqueEmail email
     deriving Show Eq
 
-UserPassword json
+Credential json
     user      UserId
     passHash  String
     deriving Show Eq
