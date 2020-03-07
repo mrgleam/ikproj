@@ -9,6 +9,8 @@ module Api.Login where
 
 import           Data.Aeson
 import           Data.Aeson.TH
+
+import           Control.Monad
 import           Control.Monad.Except           ( MonadIO
                                                 , liftIO
                                                 )
@@ -41,6 +43,7 @@ import           Models                         ( User(User)
                                                 , userEmail
                                                 , userName
                                                 , credentialPassHash
+                                                , credentialUser
                                                 )
 import qualified Models                        as Md
 import qualified System.Metrics.Counter        as Counter
@@ -66,24 +69,29 @@ checkCreds
 checkCreds cookieSettings jwtSettings login = do
   increment "login"
   logDebugNS "web" "login"
-  maybeUser <- runDb (selectFirst [Md.UserEmail ==. username login] [])
-  case maybeUser of
-      Nothing -> throwError err401
-      Just person -> do
-            let id = fromSqlKey . entityKey $ person
-            maybeUserPassword <- runDb (selectFirst [Md.CredentialUser ==. entityKey person] [])
-            case maybeUserPassword of
-              Nothing -> throwError err401
-              Just pass -> do
-                let p = entityVal pass
-                if validatePassword (B.pack (password login)) (B.pack (credentialPassHash p))
-                    then do let dataClaims = Md.DataClaims id (username login)
-                            mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings dataClaims
-                            case mcookie of
-                                Nothing           -> throwError err401
-                                Just applyCookies -> return $ applyCookies NoContent
-                    else throwError err401
-checkCreds _ _ _ = throwError err401
+  c <- fetchLogin login
+  v <- validateHash (password login) c
+  let id = fromSqlKey . credentialUser $ c
+  if v
+    then do let dataClaims = Md.DataClaims id (username login)
+            mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings dataClaims
+            case mcookie of
+              Nothing           -> throwError err401
+              Just applyCookies -> return $ applyCookies NoContent
+    else throwError err401
+
+-- TODO: this is 2 calls to the db, silly
+fetchLogin :: MonadIO m => Login -> AppT m Md.Credential
+fetchLogin login = do
+  (Entity uid u) <- maybe (throwError err401) return
+    =<< runDb (selectFirst [Md.UserEmail ==. username login] [])
+  (Entity _ l) <- maybe (throwError err401) return
+    =<< runDb (selectFirst [Md.CredentialUser  ==. uid] [])
+  return l
+
+validateHash :: MonadIO m => String -> Md.Credential -> AppT m Bool
+validateHash p credential@(Md.Credential _ hp) =
+  return $ validatePassword (B.pack p) (B.pack hp)
 
 signUp :: MonadIO m => Login -> AppT m Int64
 signUp (Login e p) = do
@@ -114,7 +122,7 @@ $(deriveJSON defaultOptions ''Login)
 type LoginAPI = Unprotected
 
 loginServer :: MonadIO m => CookieSettings -> JWTSettings -> ServerT LoginAPI (AppT m)
-loginServer cs jwts = unprotected cs jwts
+loginServer = unprotected
 
 loginApi :: Proxy LoginAPI
 loginApi = Proxy
