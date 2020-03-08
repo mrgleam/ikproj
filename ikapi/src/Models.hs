@@ -54,7 +54,7 @@ Credential json
 instance ToJWT User
 instance FromJWT User
 
-data DataClaims = DataClaims { id :: Int64, username :: Text }
+newtype DataClaims = DataClaims { id :: Int64}
         deriving (Eq, Show)
 
 $(deriveJSON defaultOptions ''DataClaims)

@@ -69,16 +69,11 @@ checkCreds
 checkCreds cookieSettings jwtSettings login = do
   increment "login"
   logDebugNS "web" "login"
-  c <- fetchLogin login
-  v <- validateHash (password login) c
-  let id = fromSqlKey . credentialUser $ c
-  if v
-    then do let dataClaims = Md.DataClaims id (username login)
-            mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings dataClaims
-            case mcookie of
-              Nothing           -> throwError err401
-              Just applyCookies -> return $ applyCookies NoContent
-    else throwError err401
+  fetchLogin
+    >=> validateHash (password login)
+    >=> (\(Md.Credential uid _) ->
+          setToken cookieSettings jwtSettings uid)
+    $ login
 
 -- TODO: this is 2 calls to the db, silly
 fetchLogin :: MonadIO m => Login -> AppT m Md.Credential
@@ -89,9 +84,32 @@ fetchLogin login = do
     =<< runDb (selectFirst [Md.CredentialUser  ==. uid] [])
   return l
 
-validateHash :: MonadIO m => String -> Md.Credential -> AppT m Bool
+validateHash :: MonadIO m => String -> Md.Credential -> AppT m Md.Credential
 validateHash p credential@(Md.Credential _ hp) =
-  return $ validatePassword (B.pack p) (B.pack hp)
+  if validatePassword (B.pack p) (B.pack hp)
+  then return credential
+  else throwError err401
+
+setToken
+  :: MonadIO m
+  => CookieSettings
+  -> JWTSettings
+  -> Md.Key User
+  -> AppT
+       m
+       ( Headers
+           '[Header "Set-Cookie" SetCookie, Header
+             "Set-Cookie"
+             SetCookie]
+           NoContent
+       )
+setToken cookieSettings jwtSettings user  = do
+  let id = fromSqlKey user
+  let dataClaims = Md.DataClaims id
+  mcookie <- liftIO $ acceptLogin cookieSettings jwtSettings dataClaims
+  case mcookie of
+    Nothing           -> throwError err401
+    Just applyCookies -> return $ applyCookies NoContent
 
 signUp :: MonadIO m => Login -> AppT m Int64
 signUp (Login e p) = do
