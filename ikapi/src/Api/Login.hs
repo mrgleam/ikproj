@@ -24,6 +24,7 @@ import           Database.Persist.Postgresql    ( Entity(..)
                                                 , selectList
                                                 , (==.)
                                                 )
+import           Database.Persist.Class         ( insertUnique )
 import           Servant
 import           Servant.Auth.Server
 import           GHC.Generics                   ( Generic )
@@ -115,10 +116,12 @@ signUp :: MonadIO m => Login -> AppT m Int64
 signUp (Login e p) = do
   increment "signup"
   logDebugNS "web" "signup"
-  newUser <- runDb . insert $ User e e
   hashed <- liftIO $ hashPassword hashIterations (B.pack p)
-  newUser' <- runDb . insert $ Md.Credential newUser $ B.unpack hashed
-  return $ fromSqlKey newUser'
+  uid <- maybe (throwError err403) return
+    =<< runDb (insertUnique (User e e))
+  cid <- maybe (throwError err403) return
+    =<< runDb (insertUnique (Md.Credential uid (B.unpack hashed)))
+  return $ fromSqlKey cid
 
 type Unprotected =
             "login"
