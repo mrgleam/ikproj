@@ -1,6 +1,5 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE TypeOperators     #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Api
@@ -28,8 +27,6 @@ import           Api.Login
 import           Config                         ( AppT(..)
                                                 , Config(..)
                                                 )
-
-import           Network.Wai.Middleware.Cors
 
 -- | This functions tells Servant how to run the 'App' monad with our
 -- 'server' function.
@@ -73,11 +70,4 @@ app
   :: Context '[CookieSettings, JWTSettings] -> CookieSettings -> JWTSettings -> Config
   -> Application
 app authCfg cs jwts cfg =
-  cors (const . Just $ corsPolicy) $ -- Generate appropriate CORS headers
   serveWithContext appApi authCfg (appToServer authCfg cfg :<|> appToLoginServer cs jwts cfg :<|> files)
-  where
-  -- Need to explictly allow needed extra headers through CORS.
-  corsPolicy = simpleCorsResourcePolicy
-    { 
-      corsRequestHeaders = ["Content-Type"],
-    }

@@ -31,7 +31,6 @@ library
                      , servant-auth
                      , servant-auth-server
                      , wai
-                     , wai-cors
                      , wai-extra
                      , wai-middleware-metrics
                      , warp
