@@ -61,7 +61,7 @@ files = serveDirectoryFileServer "assets"
 -- always succeeds.
 type AppAPI auths = UserAPI auths :<|> LoginAPI :<|> Raw
 
-appApi :: Proxy (AppAPI '[JWT])
+appApi :: Proxy (AppAPI '[Cookie])
 appApi = Proxy
 
 -- | Finally, this function takes a configuration and runs our 'UserAPI'
