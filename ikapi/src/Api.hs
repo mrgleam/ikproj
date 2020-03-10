@@ -79,5 +79,5 @@ app authCfg cs jwts cfg =
   -- Need to explictly allow needed extra headers through CORS.
   corsPolicy = simpleCorsResourcePolicy
     { 
-      corsRequestHeaders = ["Content-Type"]
+      corsRequestHeaders = ["Content-Type"],
     }
