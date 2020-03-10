@@ -40,7 +40,7 @@ unprotected = waiMetrics
 
 type UserAPI auths = (Auth auths DataClaims :> Protected) :<|> Unprotected
 
-userApi :: Proxy (UserAPI '[JWT])
+userApi :: Proxy (UserAPI '[Cookie])
 userApi = Proxy
 
 userServer :: MonadIO m => ServerT (UserAPI auths) (AppT m)
