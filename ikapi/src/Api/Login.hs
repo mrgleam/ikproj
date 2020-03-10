@@ -123,6 +123,21 @@ signUp (Login e p) = do
     =<< runDb (insertUnique (Md.Credential uid (B.unpack hashed)))
   return $ fromSqlKey cid
 
+logout ::MonadIO m
+  => CookieSettings
+  -> AppT
+       m
+       ( Headers
+           '[Header "Set-Cookie" SetCookie, Header
+             "Set-Cookie"
+             SetCookie]
+           NoContent
+       )
+logout cs = do
+  increment "logout"
+  logDebugNS "web" "logout"
+  return $ clearSession cs NoContent
+
 type Unprotected =
             "login"
             :> ReqBody '[JSON] Login
@@ -131,9 +146,12 @@ type Unprotected =
                                         NoContent)
       :<|> "signup" :> ReqBody '[JSON] Login
             :> Post '[JSON] Int64
+      :<|> "logout" :> Get '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
+                                        , Header "Set-Cookie" SetCookie]
+                                        NoContent)
 
 unprotected :: MonadIO m => CookieSettings -> JWTSettings -> ServerT Unprotected (AppT m)
-unprotected cs jwts = checkCreds cs jwts :<|> signUp
+unprotected cs jwts = checkCreds cs jwts :<|> signUp :<|> logout cs
 
 data Login = Login { username :: Text, password :: String }
         deriving (Eq, Show, Read, Generic)
@@ -142,7 +160,11 @@ $(deriveJSON defaultOptions ''Login)
 
 type LoginAPI = Unprotected
 
-loginServer :: MonadIO m => CookieSettings -> JWTSettings -> ServerT LoginAPI (AppT m)
+loginServer
+  :: MonadIO m
+  => CookieSettings
+  -> JWTSettings
+  -> ServerT LoginAPI (AppT m)
 loginServer = unprotected
 
 loginApi :: Proxy LoginAPI
