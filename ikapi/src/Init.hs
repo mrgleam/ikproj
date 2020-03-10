@@ -48,7 +48,10 @@ initialize :: Config -> IO Application
 initialize cfg = do
   t <- getCurrentTime
   let tAdd1Day = addMinutes 1440 t
-  let cookieCfg = def{cookieExpires = Just tAdd1Day}
+  let cookieCfg = def{
+      cookieExpires = Just tAdd1Day,
+      cookieIsSecure = NotSecure
+    }
   myKey <- generateKey
   let jwtCfg = defaultJWTSettings myKey
       authCfg    = cookieCfg:. jwtCfg :. EmptyContext
