@@ -40,8 +40,8 @@ import           Data.Int                       ( Int64 )
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 User json
-    name Text
-    email Text
+    name String 
+    email String
     UniqueEmail email
     deriving Show Eq
 

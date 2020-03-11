@@ -53,6 +53,8 @@ library
                      , safe
                      , foreign-store
                      , cryptonite
+                     , email-validate
+                     , utf8-string
   default-language:    Haskell2010
 
 executable ikapi-exe

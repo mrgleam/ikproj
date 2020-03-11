@@ -27,7 +27,7 @@ import qualified System.Metrics.Counter      as Counter
 type Protected = 
          "users" :> ReqBody '[JSON] User :> Post '[JSON] Int64
     :<|> "users" :> Get '[JSON] [Entity User]
-    :<|> "users" :> Capture "name" Text :> Get '[JSON] (Entity User)
+    :<|> "users" :> Capture "name" String :> Get '[JSON] (Entity User)
 
 type Unprotected = "metrics" :> Get '[JSON] (HashMap Text Int64)
 
@@ -54,7 +54,7 @@ allUsers = do
     runDb (selectList [] [])
 
 -- | Returns a user by name or throws a 404 error.
-singleUser :: MonadIO m => Text -> AppT m (Entity User)
+singleUser :: MonadIO m => String -> AppT m (Entity User)
 singleUser str = do
     increment "singleUser"
     logDebugNS "web" "singleUser"

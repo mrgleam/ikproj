@@ -52,6 +52,8 @@ import           Crypto.KDF.BCrypt              ( hashPassword
                                                 , validatePassword
                                                 )
 import qualified Data.ByteString.Char8         as B
+import           Text.Email.Validate
+import           Data.ByteString.Lazy.UTF8     as BLU -- from utf8-string
 
 -- TODO: belongs in config
 hashIterations = 12         -- 15 =~ 6 sec
@@ -70,11 +72,14 @@ checkCreds
 checkCreds cookieSettings jwtSettings login = do
   increment "login"
   logDebugNS "web" "login"
-  fetchLogin
-    >=> validateHash (password login)
-    >=> (\(Md.Credential uid _) ->
-          setToken cookieSettings jwtSettings uid)
-    $ login
+  let e = validate (B.pack (username login))
+  case e of
+    Left e  -> throwError $ err400 { errBody = BLU.fromString e } 
+    Right e -> fetchLogin
+                  >=> validateHash (password login)
+                  >=> (\(Md.Credential uid _) ->
+                      setToken cookieSettings jwtSettings uid)
+                  $ login
 
 -- TODO: this is 2 calls to the db, silly
 fetchLogin :: MonadIO m => Login -> AppT m Md.Credential
@@ -153,7 +158,7 @@ type Unprotected =
 unprotected :: MonadIO m => CookieSettings -> JWTSettings -> ServerT Unprotected (AppT m)
 unprotected cs jwts = checkCreds cs jwts :<|> signUp :<|> logout cs
 
-data Login = Login { username :: Text, password :: String }
+data Login = Login { username :: String, password :: String }
         deriving (Eq, Show, Read, Generic)
 
 $(deriveJSON defaultOptions ''Login)
