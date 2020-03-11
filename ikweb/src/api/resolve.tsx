@@ -11,7 +11,7 @@ export const resolve = async (promise: any) => {
       if (e.response.status === 500) {
         resolved.error = 'Internal Server Error'
       } else {
-        resolved.error = `Network ${e.toString()}`
+        resolved.error = `Network ${e.toString()} ${e.response?.data?.toString()}`
       }
     } else {
       resolved.error = e.toString()
