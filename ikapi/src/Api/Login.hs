@@ -72,14 +72,12 @@ checkCreds
 checkCreds cookieSettings jwtSettings login = do
   increment "login"
   logDebugNS "web" "login"
-  let e = validate (B.pack (username login))
-  case e of
-    Left e  -> throwError $ err400 { errBody = BLU.fromString e } 
-    Right e -> fetchLogin
-                  >=> validateHash (password login)
-                  >=> (\(Md.Credential uid _) ->
-                      setToken cookieSettings jwtSettings uid)
-                  $ login
+  validateEmail
+    >=> fetchLogin
+    >=> validateHash (password login)
+    >=> (\(Md.Credential uid _) ->
+        setToken cookieSettings jwtSettings uid)
+    $ login
 
 -- TODO: this is 2 calls to the db, silly
 fetchLogin :: MonadIO m => Login -> AppT m Md.Credential
@@ -89,6 +87,13 @@ fetchLogin login = do
   (Entity _ l) <- maybe (throwError err401) return
     =<< runDb (selectFirst [Md.CredentialUser  ==. uid] [])
   return l
+
+validateEmail :: MonadIO m => Login -> AppT m Login
+validateEmail login = do
+  let e = validate (B.pack (username login))
+  case e of
+    Left e  -> throwError $ err400 { errBody = BLU.fromString e } 
+    Right _ -> return login
 
 validateHash :: MonadIO m => String -> Md.Credential -> AppT m Md.Credential
 validateHash p credential@(Md.Credential _ hp) =
