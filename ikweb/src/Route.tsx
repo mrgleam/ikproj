@@ -24,10 +24,6 @@ const LoginHandler = ({ history }: any) => {
     }
   }
 
-  if (error) {
-    return <h4>{error}</h4>
-  }
-
   if (loading) {
     return <h4>Logging in...</h4>
   }
@@ -49,6 +45,7 @@ const LoginHandler = ({ history }: any) => {
         />
         <input type="submit" value="Login" />
       </form>
+      {error && <h2>{error}</h2>}
     </div>
   )
 }
