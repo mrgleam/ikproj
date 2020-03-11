@@ -1,42 +1,39 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
-import { Router, Switch, Route } from "react-router";
-import { createBrowserHistory } from "history";
-import { Link } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect, useState, useContext, useRef } from 'react'
+import { Router, Switch, Route } from 'react-router'
+import { createBrowserHistory } from 'history'
+import { Link } from 'react-router-dom'
+import * as api from './api'
 
-const history = createBrowserHistory();
+const history = createBrowserHistory()
 const LoginHandler = ({ history }: any) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const fetchLogin = () => {
-    return axios.post(
-      "/login",
-      { username: email, password },
-      { withCredentials: true }
-    );
-  };
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await fetchLogin();
-      setLoading(false);
-      history.push("/");
-    } catch (e) {
-      setLoading(false);
-      history.push("/login");
+    e.preventDefault()
+    setLoading(true)
+    const l = await api.login(email, password)
+    setLoading(false)
+    if (l.error) {
+      setError(l.error)
+      history.push('/login')
+    } else {
+      history.push('/')
     }
-  };
+  }
+
+  if (error) {
+    return <h4>{error}</h4>
+  }
 
   if (loading) {
-    return <h4>Logging in...</h4>;
+    return <h4>Logging in...</h4>
   }
 
   return (
-    <div style={{ marginTop: "1rem" }}>
+    <div style={{ marginTop: '1rem' }}>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -53,33 +50,38 @@ const LoginHandler = ({ history }: any) => {
         <input type="submit" value="Login" />
       </form>
     </div>
-  );
-};
+  )
+}
 
 const LogoutHandler = ({ history }: any) => {
   useEffect(() => {
-    history.push("/login");
-  }, [history]);
-  return <div>Logging out!</div>;
-};
+    history.push('/login')
+  }, [history])
+  return <div>Logging out!</div>
+}
 
 const ProtectedHandler = ({ history }: any) => {
   // const session = useContext(SessionContext);
-  // if (session.email === undefined) {
-  //   history.push("/login");
-  // }
+  useEffect(() => {
+    api.session().then(s => {
+      if (s.error) {
+        history.push('/login')
+      }
+    })
+  }, [history])
+
   return (
     <div>
       <h6>Protected data for </h6>
       <Link to="/logout">Logout here</Link>
     </div>
-  );
-};
+  )
+}
 export const Routes = () => {
   return (
     <Router history={history}>
       <div className="navbar">
-        <h6 style={{ display: "inline" }}>Nav Bar</h6>
+        <h6 style={{ display: 'inline' }}>Nav Bar</h6>
       </div>
       <Switch>
         <Route path="/login" component={LoginHandler} />
@@ -87,5 +89,5 @@ export const Routes = () => {
         <Route path="*" component={ProtectedHandler} />
       </Switch>
     </Router>
-  );
-};
+  )
+}
