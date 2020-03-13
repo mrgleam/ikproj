@@ -130,17 +130,14 @@ signUp (Login e p) = do
   hashed <- liftIO $ hashPassword hashIterations (B.pack p)
   cid <- maybe (throwError err403) return
           =<< runDb (do
-            uid <- insertUnique (User e e)
-            case uid of
-              Just id -> do
-                cid <- insertUnique (Md.Credential id (B.unpack hashed))
-                case cid of
-                  Nothing -> do
-                    transactionUndo
-                    pure cid
-                  Just _ -> pure cid
-              Nothing -> return Nothing
-        )
+              cid <- (insertUnique >=> maybe (return Nothing)
+                (\uid -> insertUnique (Md.Credential uid (B.unpack hashed)))) (User e e)
+              case cid of
+                Nothing -> do 
+                  transactionUndo
+                  return cid
+                Just _ -> pure cid
+            )
   return $ fromSqlKey cid
 
 logout ::MonadIO m
