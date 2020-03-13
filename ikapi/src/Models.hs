@@ -24,12 +24,14 @@ import           Control.Monad.Reader           ( MonadIO
 import           Database.Persist.Sql           ( SqlPersistT
                                                 , runMigration
                                                 , runSqlPool
+                                                , insert
                                                 )
 import           Database.Persist.TH            ( mkMigrate
                                                 , mkPersist
                                                 , persistLowerCase
                                                 , share
                                                 , sqlSettings
+                                                , derivePersistField
                                                 )
 
 import           Config                         ( Config
@@ -37,6 +39,8 @@ import           Config                         ( Config
                                                 )
 import           Data.Text                      ( Text )
 import           Data.Int                       ( Int64 )
+import           Data.Time
+import           Model.Status
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 User json
@@ -48,6 +52,19 @@ User json
 Credential json
     user      UserId
     passHash  String
+    deriving Show Eq
+
+Mission json
+    name Text
+    status Status
+    deriving Show Eq
+
+UserMissionSetting json
+    user      UserId
+    mission   MissionId
+    value     Int
+    updated   UTCTime default=now()
+    created   UTCTime default=now()
     deriving Show Eq
 |]
 
@@ -63,7 +80,10 @@ instance ToJWT DataClaims
 instance FromJWT DataClaims
 
 doMigrations :: SqlPersistT IO ()
-doMigrations = runMigration migrateAll
+doMigrations = do
+                runMigration migrateAll
+                insert (Mission "Reading" Active)
+                return ()
 
 runDb :: (MonadReader Config m, MonadIO m) => SqlPersistT IO b -> m b
 runDb query = do
