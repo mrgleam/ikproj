@@ -25,6 +25,7 @@ import           Database.Persist.Postgresql    ( Entity(..)
                                                 , (==.)
                                                 )
 import           Database.Persist.Class         ( insertUnique )
+import           Database.Persist.Sql           ( transactionUndo )
 import           Servant
 import           Servant.Auth.Server
 import           GHC.Generics                   ( Generic )
@@ -92,7 +93,7 @@ validateEmail :: MonadIO m => Login -> AppT m Login
 validateEmail login = do
   let e = validate (B.pack (username login))
   case e of
-    Left e  -> throwError $ err400 { errBody = BLU.fromString e } 
+    Left e  -> throwError $ err400 { errBody = BLU.fromString e }
     Right _ -> return login
 
 validateHash :: MonadIO m => String -> Md.Credential -> AppT m Md.Credential
@@ -127,10 +128,19 @@ signUp (Login e p) = do
   increment "signup"
   logDebugNS "web" "signup"
   hashed <- liftIO $ hashPassword hashIterations (B.pack p)
-  uid <- maybe (throwError err403) return
-    =<< runDb (insertUnique (User e e))
   cid <- maybe (throwError err403) return
-    =<< runDb (insertUnique (Md.Credential uid (B.unpack hashed)))
+          =<< runDb (do
+            uid <- insertUnique (User e e)
+            case uid of
+              Just id -> do
+                cid <- insertUnique (Md.Credential id (B.unpack hashed))
+                case cid of
+                  Nothing -> do
+                    transactionUndo
+                    pure cid
+                  Just _ -> pure cid
+              Nothing -> return Nothing
+        )
   return $ fromSqlKey cid
 
 logout ::MonadIO m
