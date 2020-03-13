@@ -124,9 +124,15 @@ setToken cookieSettings jwtSettings user  = do
     Just applyCookies -> return $ applyCookies NoContent
 
 signUp :: MonadIO m => Login -> AppT m Int64
-signUp (Login e p) = do
+signUp login@(Login e p) = do
   increment "signup"
   logDebugNS "web" "signup"
+  validateEmail
+    >=> createUserWithCredential p
+    $ e
+
+createUserWithCredential :: MonadIO m => String -> String -> AppT m Int64
+createUserWithCredential p e = do
   hashed <- liftIO $ hashPassword hashIterations (B.pack p)
   cid <- maybe (throwError err403) return
           =<< runDb (do
