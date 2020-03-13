@@ -71,7 +71,7 @@ UserMissionSetting json
 instance ToJWT User
 instance FromJWT User
 
-newtype DataClaims = DataClaims { id :: Int64}
+newtype DataClaims = DataClaims { id :: Int64 }
         deriving (Eq, Show)
 
 $(deriveJSON defaultOptions ''DataClaims)

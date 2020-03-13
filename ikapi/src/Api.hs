@@ -23,6 +23,7 @@ import           Api.User                       ( UserAPI
                                                 )
 import           Api.Login
 import           Api.Session
+import           Api.Mission
 
 import           Config                         ( AppT(..)
                                                 , Config(..)
@@ -50,6 +51,13 @@ appToSessionServer cfg = hoistServerWithContext
   (convertApp cfg)
   sessionServer
 
+appToMissionServer :: Config -> Server (UserMissionSettingAPI auths)
+appToMissionServer cfg = hoistServerWithContext
+  userMissionSettingApi
+  (Proxy :: Proxy '[CookieSettings, JWTSettings])
+  (convertApp cfg)
+  userMissionSettingApiServer
+
 -- | This function converts our @'AppT' m@ monad into the @ExceptT ServantErr
 -- m@ monad that Servant's 'enter' function needs in order to run the
 -- application.
@@ -67,7 +75,8 @@ files = serveDirectoryFileServer "assets"
 -- two different APIs and applications. This is a powerful tool for code
 -- reuse and abstraction! We need to put the 'Raw' endpoint last, since it
 -- always succeeds.
-type AppAPI auths = UserAPI auths :<|> SessionAPI auths :<|> LoginAPI :<|> Raw
+type AppAPI auths
+  = UserMissionSettingAPI auths :<|> SessionAPI auths :<|> LoginAPI :<|> Raw
 
 appApi :: Proxy (AppAPI '[Cookie])
 appApi = Proxy
@@ -78,4 +87,4 @@ app
   :: Context '[CookieSettings, JWTSettings] -> CookieSettings -> JWTSettings -> Config
   -> Application
 app authCfg cs jwts cfg =
-  serveWithContext appApi authCfg (appToServer authCfg cfg :<|> appToSessionServer cfg :<|> appToLoginServer cs jwts cfg :<|> files)
+  serveWithContext appApi authCfg (appToMissionServer cfg :<|> appToSessionServer cfg :<|> appToLoginServer cs jwts cfg :<|> files)

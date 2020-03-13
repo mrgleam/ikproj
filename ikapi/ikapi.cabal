@@ -22,6 +22,7 @@ library
                      , Api.Login
                      , Api.User
                      , Api.Session
+                     , Api.Mission
                      , Logger
                      , Config
                      , Models
