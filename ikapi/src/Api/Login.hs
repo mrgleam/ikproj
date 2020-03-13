@@ -70,31 +70,31 @@ checkCreds
              SetCookie]
            NoContent
        )
-checkCreds cookieSettings jwtSettings login = do
+checkCreds cookieSettings jwtSettings (Login e p) = do
   increment "login"
   logDebugNS "web" "login"
   validateEmail
     >=> fetchLogin
-    >=> validateHash (password login)
+    >=> validateHash p
     >=> (\(Md.Credential uid _) ->
         setToken cookieSettings jwtSettings uid)
-    $ login
+    $ e
 
 -- TODO: this is 2 calls to the db, silly
-fetchLogin :: MonadIO m => Login -> AppT m Md.Credential
-fetchLogin login = do
+fetchLogin :: MonadIO m => String -> AppT m Md.Credential
+fetchLogin email = do
   (Entity uid u) <- maybe (throwError err401) return
-    =<< runDb (selectFirst [Md.UserEmail ==. username login] [])
+    =<< runDb (selectFirst [Md.UserEmail ==. email] [])
   (Entity _ l) <- maybe (throwError err401) return
     =<< runDb (selectFirst [Md.CredentialUser  ==. uid] [])
   return l
 
-validateEmail :: MonadIO m => Login -> AppT m Login
-validateEmail login = do
-  let e = validate (B.pack (username login))
+validateEmail :: MonadIO m => String -> AppT m String
+validateEmail email = do
+  let e = validate (B.pack email)
   case e of
     Left e  -> throwError $ err400 { errBody = BLU.fromString e }
-    Right _ -> return login
+    Right _ -> return email
 
 validateHash :: MonadIO m => String -> Md.Credential -> AppT m Md.Credential
 validateHash p credential@(Md.Credential _ hp) =
