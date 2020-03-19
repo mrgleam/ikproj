@@ -19,6 +19,7 @@ import           Database.Persist.Postgresql    ( Entity(..)
 import           Database.Persist.Sql           ( toSqlKey
                                                 , fromSqlKey
                                                 )
+import           Database.Persist.Class         ( replaceUnique )
 import           Servant
 import           Servant.Auth.Server
 

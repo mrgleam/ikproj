@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Model.Status where
+module Models.Status where
 
 import           Data.Aeson
 import           GHC.Generics

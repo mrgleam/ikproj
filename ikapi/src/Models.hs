@@ -40,7 +40,7 @@ import           Config                         ( Config
 import           Data.Text                      ( Text )
 import           Data.Int                       ( Int64 )
 import           Data.Time
-import           Model.Status
+import           Models.Status
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 User json

@@ -17,7 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Init
                      , Lib
-                     , Model.Status
+                     , Models.Status
                      , Api
                      , Api.Login
                      , Api.User
