@@ -65,6 +65,7 @@ UserMissionSetting json
     value     Int
     updated   UTCTime default=now()
     created   UTCTime default=now()
+    UniqueUserMission user mission
     deriving Show Eq
 |]
 
