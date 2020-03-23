@@ -1,40 +1,87 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeOperators   #-}
-module Lib
-    ( startApp
-    , app
-    ) where
+{-# LANGUAGE OverloadedStrings #-}
 
-import Data.Aeson
-import Data.Aeson.TH
-import Network.Wai
-import Network.Wai.Handler.Warp
-import Servant
+module Lib where
 
-data User = User
-  { userId        :: Int
-  , userFirstName :: String
-  , userLastName  :: String
-  } deriving (Eq, Show)
+import           Prelude
 
-$(deriveJSON defaultOptions ''User)
+import           Control.Concurrent             ( MVar
+                                                , ThreadId
+                                                , forkIO
+                                                , killThread
+                                                , newEmptyMVar
+                                                , putMVar
+                                                , takeMVar
+                                                )
+import           Control.Exception              ( finally )
+import           Control.Monad                  ( (>=>) )
+import           Data.IORef                     ( IORef
+                                                , newIORef
+                                                , readIORef
+                                                , writeIORef
+                                                )
+import           Foreign.Store                  ( Store(..)
+                                                , lookupStore
+                                                , readStore
+                                                , storeAction
+                                                , withStore
+                                                )
+import           GHC.Word                       ( Word32 )
+import           Init                           ( runApp )
 
-type API = "users" :> Get '[JSON] [User]
+-- | Start or restart the server.
+-- newStore is from foreign-store.
+-- A Store holds onto some data across ghci reloads
+update :: IO ()
+update = do
+  mtidStore <- lookupStore tidStoreNum
+  case mtidStore of
+    -- no server running
+    Nothing -> do
+      done <- storeAction doneStore newEmptyMVar
+      tid  <- start done
+      _    <- storeAction (Store tidStoreNum) (newIORef tid)
+      return ()
+    -- server is already running
+    Just tidStore -> restartAppInNewThread tidStore
+ where
+  doneStore :: Store (MVar ())
+  doneStore = Store 0
 
-startApp :: IO ()
-startApp = run 8080 app
+  -- shut the server down with killThread and wait for the done signal
+  restartAppInNewThread :: Store (IORef ThreadId) -> IO ()
+  restartAppInNewThread tidStore = modifyStoredIORef tidStore $ \tid -> do
+    killThread tid
+    withStore doneStore takeMVar
+    readStore doneStore >>= start
 
-app :: Application
-app = serve api server
 
-api :: Proxy API
-api = Proxy
+  -- | Start the server in a separate thread.
+  start
+    :: MVar () -- ^ Written to when the thread is killed.
+    -> IO ThreadId
+  start done = forkIO
+    (finally runApp
+                      -- Note that this implies concurrency
+                      -- between shutdownApp and the next app that is starting.
+                      -- Normally this should be fine
+             (putMVar done ())
+    )
 
-server :: Server API
-server = return users
+-- | kill the server
+shutdown :: IO ()
+shutdown = do
+  mtidStore <- lookupStore tidStoreNum
+  case mtidStore of
+    -- no server running
+    Nothing       -> putStrLn "no app running"
+    Just tidStore -> do
+      withStore tidStore $ readIORef >=> killThread
+      putStrLn "App is shutdown"
 
-users :: [User]
-users = [ User 1 "Isaac" "Newton"
-        , User 2 "Albert" "Einstein"
-        ]
+tidStoreNum :: Word32
+tidStoreNum = 1
+
+modifyStoredIORef :: Store (IORef a) -> (a -> IO a) -> IO ()
+modifyStoredIORef store f = withStore store $ \ref -> do
+  v <- readIORef ref
+  f v >>= writeIORef ref
