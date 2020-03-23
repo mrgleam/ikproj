@@ -64,7 +64,7 @@ upsertUserMissionSetting :: MonadIO m => Int64 -> UserMissionSettingRequest -> A
 upsertUserMissionSetting uid setting = do
     increment "upsertUserMissionSetting"
     logDebugNS "web" "upserting a user mission setting"
-    maybeUserMissionSetting <- runDb (selectFirst [Md.UserMissionSettingUser ==. toSqlKey uid] [])
+    maybeUserMissionSetting <- runDb (selectFirst [Md.UserMissionSettingUser ==. toSqlKey uid, Md.UserMissionSettingMission ==. toSqlKey (mission setting)] [])
     case maybeUserMissionSetting of
       Nothing -> do
         now <- liftIO getCurrentTime
