@@ -13,7 +13,7 @@ import           Data.Int                    (Int64)
 import           Database.Persist.Postgresql    ( Entity(..)
                                                 , selectFirst
                                                 , insertUnique
-                                                , updateGet
+                                                , update
                                                 , (==.), (=.)
                                                 )
 import           Database.Persist.Sql           ( toSqlKey
@@ -68,11 +68,11 @@ upsertUserMissionSetting uid setting = do
     case maybeUserMissionSetting of
       Nothing -> do
         now <- liftIO getCurrentTime
-        newUserMissionSetting <- runDb (insertUnique (UserMissionSetting (toSqlKey uid) (toSqlKey $ mission setting) 0 now now))
+        newUserMissionSetting <- runDb (insertUnique (UserMissionSetting (toSqlKey uid) (toSqlKey $ mission setting) (value setting) now now))
         case newUserMissionSetting of
           Nothing -> throwError err403 { errBody = "The system can't insert data."}
           Just newSetting -> return $ fromSqlKey newSetting
       Just (Entity id _) -> do
         now <- liftIO getCurrentTime
-        _ <- runDb (updateGet id [Md.UserMissionSettingValue =. value setting, Md.UserMissionSettingUpdated =. now])
+        _ <- runDb (update id [Md.UserMissionSettingValue =. value setting, Md.UserMissionSettingUpdated =. now])
         return $ fromSqlKey id
