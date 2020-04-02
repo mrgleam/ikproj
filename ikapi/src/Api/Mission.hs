@@ -20,7 +20,9 @@ import           Database.Persist.Postgresql    ( Entity(..)
 import           Database.Persist.Sql           ( toSqlKey
                                                 , fromSqlKey
                                                 )
-import           Database.Persist.Class         ( replaceUnique )
+import           Database.Persist.Class         ( replaceUnique
+                                                , get
+                                                )
 import           Servant
 import           Servant.Auth.Server
 
@@ -65,25 +67,19 @@ upsertUserMissionSetting :: MonadIO m => Int64 -> UserMissionSettingRequest -> A
 upsertUserMissionSetting uid setting = do
     increment "upsertUserMissionSetting"
     logDebugNS "web" "upserting a user mission setting"
-    maybeUserMissionSetting <- runDb (selectFirst [Md.UserMissionSettingUser ==. toSqlKey uid, Md.UserMissionSettingMission ==. toSqlKey (mission setting)] [])
-    case maybeUserMissionSetting of
-      Nothing -> do
-        now <- liftIO getCurrentTime
-        insertedId <- maybe (throwError err403) return
-          =<< runDb (do
-              iid <- insertUnique (UserMissionSetting (toSqlKey uid) (toSqlKey $ mission setting) (value setting) now now)
-              case iid of
-                Nothing -> return Nothing
-                Just _ -> return (pure iid)
-            )
-        case insertedId of
-          Nothing -> throwError err403
-          Just id -> return $ fromSqlKey id
-        -- newUserMissionSetting <- runDb (insertUnique (UserMissionSetting (toSqlKey uid) (toSqlKey $ mission setting) (value setting) now now))
-        -- case newUserMissionSetting of
-        --   Nothing -> throwError err403 { errBody = "The system can't insert data."}
-          -- Just newSetting -> return $ fromSqlKey newSetting
-      Just (Entity id _) -> do
-        now <- liftIO getCurrentTime
-        _ <- runDb (update id [Md.UserMissionSettingValue =. value setting, Md.UserMissionSettingUpdated =. now])
-        return $ fromSqlKey id
+    maybeMission <- runDb (selectFirst [Md.MissionId ==. toSqlKey (mission setting)] [])
+    case maybeMission of 
+      Nothing ->  throwError err404 { errBody = "Mission not found."}
+      Just _ -> do
+        maybeUserMissionSetting <- runDb (selectFirst [Md.UserMissionSettingUser ==. toSqlKey uid, Md.UserMissionSettingMission ==. toSqlKey (mission setting)] [])
+        case maybeUserMissionSetting of
+          Nothing -> do
+            now <- liftIO getCurrentTime
+            newUserMissionSetting <- runDb (insertUnique (UserMissionSetting (toSqlKey uid) (toSqlKey $ mission setting) (value setting) now now))
+            case newUserMissionSetting of
+              Nothing -> throwError err403 { errBody = "The system can't insert data."}
+              Just newSetting -> return $ fromSqlKey newSetting
+          Just (Entity id _) -> do
+            now <- liftIO getCurrentTime
+            _ <- runDb (update id [Md.UserMissionSettingValue =. value setting, Md.UserMissionSettingUpdated =. now])
+            return $ fromSqlKey id
