@@ -11,7 +11,7 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
 
-module Models where
+module Models.Database where
 
 import           Data.Aeson
 import           Data.Aeson.TH

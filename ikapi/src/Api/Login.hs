@@ -40,14 +40,14 @@ import           Data.HashMap.Lazy              ( HashMap )
 import           Data.Text                      ( Text )
 import qualified Data.Text                     as T
 import           Lens.Micro                     ( (^.) )
-import           Models                         ( User(User)
+import           Models.Database                ( User(User)
                                                 , runDb
                                                 , userEmail
                                                 , userName
                                                 , credentialPassHash
                                                 , credentialUser
                                                 )
-import qualified Models                        as Md
+import qualified Models.Database               as Md
 import qualified System.Metrics.Counter        as Counter
 import           Crypto.KDF.BCrypt              ( hashPassword
                                                 , validatePassword

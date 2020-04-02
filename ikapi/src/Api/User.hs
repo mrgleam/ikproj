@@ -19,9 +19,9 @@ import           Data.IORef                  (readIORef)
 import           Data.HashMap.Lazy           (HashMap)
 import           Data.Text                   (Text)
 import           Lens.Micro                  ((^.))
-import           Models                      (User (User), runDb, userEmail,
+import           Models.Database             (User (User), runDb, userEmail,
                                               userName, DataClaims)
-import qualified Models                      as Md
+import qualified Models.Database             as Md
 import qualified System.Metrics.Counter      as Counter
 
 type Protected = 

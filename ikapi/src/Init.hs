@@ -26,7 +26,7 @@ import           Control.Exception              ( bracket )
 import qualified Data.Pool                     as Pool
 import qualified Katip
 import           Logger                         ( defaultLogEnv )
-import           Models                         ( doMigrations )
+import           Models.Database                ( doMigrations )
 import           Network.Wai.Handler.Warp       ( run )
 import           Safe                           ( readMay )
 import           Data.Time

@@ -18,6 +18,7 @@ library
   exposed-modules:     Init
                      , Lib
                      , Models.Status
+                     , Models.Database
                      , Api
                      , Api.Login
                      , Api.User
@@ -25,7 +26,6 @@ library
                      , Api.Mission
                      , Logger
                      , Config
-                     , Models
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , bytestring

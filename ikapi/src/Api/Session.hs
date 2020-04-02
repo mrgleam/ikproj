@@ -7,7 +7,7 @@ module Api.Session where
 import           Control.Monad.Except        (MonadIO)
 import           Control.Monad.Logger        (logDebugNS)
 import           Control.Monad.Metrics       (increment)
-import           Models                      (DataClaims)
+import           Models.Database             (DataClaims)
 
 import           Servant
 import           Servant.Auth.Server
