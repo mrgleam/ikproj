@@ -2,7 +2,8 @@
 {-# LANGUAGE TypeOperators #-}
 
 module Api
-  ( app )
+  ( app
+  )
 where
 
 import           Control.Monad.Reader           ( runReaderT )
@@ -33,18 +34,20 @@ import           Config                         ( AppT(..)
 -- 'server' function.
 appToServer
   :: Context '[CookieSettings, JWTSettings] -> Config -> Server (UserAPI auths)
-appToServer authCfg cfg =
-  hoistServerWithContext userApi (Proxy :: Proxy '[CookieSettings, JWTSettings]) (convertApp cfg) userServer
+appToServer authCfg cfg = hoistServerWithContext
+  userApi
+  (Proxy :: Proxy '[CookieSettings, JWTSettings])
+  (convertApp cfg)
+  userServer
 
-appToLoginServer
-  :: CookieSettings -> JWTSettings ->  Config -> Server LoginAPI
+appToLoginServer :: CookieSettings -> JWTSettings -> Config -> Server LoginAPI
 appToLoginServer cs jwts cfg = hoistServerWithContext
-  loginApi (Proxy :: Proxy '[CookieSettings, JWTSettings])
+  loginApi
+  (Proxy :: Proxy '[CookieSettings, JWTSettings])
   (convertApp cfg)
   (loginServer cs jwts)
 
-appToSessionServer
-  :: Config -> Server (SessionAPI auths)
+appToSessionServer :: Config -> Server (SessionAPI auths)
 appToSessionServer cfg = hoistServerWithContext
   sessionApi
   (Proxy :: Proxy '[CookieSettings, JWTSettings])
@@ -84,7 +87,16 @@ appApi = Proxy
 -- | Finally, this function takes a configuration and runs our 'UserAPI'
 -- alongside the 'Raw' endpoint that serves all of our files.
 app
-  :: Context '[CookieSettings, JWTSettings] -> CookieSettings -> JWTSettings -> Config
+  :: Context '[CookieSettings, JWTSettings]
+  -> CookieSettings
+  -> JWTSettings
+  -> Config
   -> Application
-app authCfg cs jwts cfg =
-  serveWithContext appApi authCfg (appToMissionServer cfg :<|> appToSessionServer cfg :<|> appToLoginServer cs jwts cfg :<|> files)
+app authCfg cs jwts cfg = serveWithContext
+  appApi
+  authCfg
+  (    appToMissionServer cfg
+  :<|> appToSessionServer cfg
+  :<|> appToLoginServer cs jwts cfg
+  :<|> files
+  )
