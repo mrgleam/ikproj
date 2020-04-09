@@ -10,8 +10,12 @@ type alias Flags =
     {}
 
 
+type Token
+    = Token String
+
+
 type alias Model =
-    { name : String }
+    { token : Maybe Token, navigationKey : Key }
 
 
 type Msg
@@ -23,8 +27,25 @@ init flags url key =
     let
         _ =
             Debug.log "url" url
+
+        parts =
+            Debug.log "parts" (String.split "/" url.path)
+
+        token =
+            case List.reverse parts |> List.head of
+                Nothing ->
+                    Nothing
+
+                Just tok ->
+                    Just (Token tok)
+
+        _ = Debug.log "token" token
+        newModel =
+            { token = token
+            , navigationKey = key
+            }
     in
-    ( Model "Jack", Cmd.none )
+    ( newModel, Cmd.none )
 
 
 view : Model -> Document Msg
