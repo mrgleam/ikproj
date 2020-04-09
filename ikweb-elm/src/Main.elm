@@ -25,21 +25,12 @@ type Msg
 init : Flags -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
     let
-        _ =
-            Debug.log "url" url
-
         parts =
-            Debug.log "parts" (String.split "/" url.path)
+            String.split "/" url.path
 
         token =
-            case List.reverse parts |> List.head of
-                Nothing ->
-                    Nothing
+            Maybe.map Token (List.reverse parts |> List.head)
 
-                Just tok ->
-                    Just (Token tok)
-
-        _ = Debug.log "token" token
         newModel =
             { token = token
             , navigationKey = key
