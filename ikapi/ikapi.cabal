@@ -24,12 +24,15 @@ library
                      , Api.User
                      , Api.Session
                      , Api.Mission
+                     , Api.Sockets
                      , Logger
                      , Config
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , bytestring
                      , transformers
+                     , servant-websockets
+                     , websockets
                      , servant-server
                      , servant-auth
                      , servant-auth-server

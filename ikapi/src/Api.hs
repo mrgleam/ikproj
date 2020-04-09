@@ -25,6 +25,7 @@ import           Api.User                       ( UserAPI
 import           Api.Login
 import           Api.Session
 import           Api.Mission
+import           Api.Sockets
 
 import           Config                         ( AppT(..)
                                                 , Config(..)
@@ -61,6 +62,13 @@ appToMissionServer cfg = hoistServerWithContext
   (convertApp cfg)
   userMissionSettingApiServer
 
+appToSocketsServer :: Config -> Server SocketsAPI
+appToSocketsServer cfg = hoistServerWithContext
+  socketsApi
+  (Proxy :: Proxy '[CookieSettings, JWTSettings])
+  (convertApp cfg)
+  socketsServer
+
 -- | This function converts our @'AppT' m@ monad into the @ExceptT ServantErr
 -- m@ monad that Servant's 'enter' function needs in order to run the
 -- application.
@@ -79,7 +87,7 @@ files = serveDirectoryFileServer "assets"
 -- reuse and abstraction! We need to put the 'Raw' endpoint last, since it
 -- always succeeds.
 type AppAPI auths
-  = UserMissionSettingAPI auths :<|> SessionAPI auths :<|> LoginAPI :<|> Raw
+  = UserMissionSettingAPI auths :<|> SessionAPI auths :<|> LoginAPI :<|> SocketsAPI :<|> Raw
 
 appApi :: Proxy (AppAPI '[Cookie])
 appApi = Proxy
@@ -98,5 +106,6 @@ app authCfg cs jwts cfg = serveWithContext
   (    appToMissionServer cfg
   :<|> appToSessionServer cfg
   :<|> appToLoginServer cs jwts cfg
+  :<|> appToSocketsServer cfg
   :<|> files
   )
