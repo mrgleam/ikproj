@@ -24,3 +24,7 @@ cabal.project.local~
 .ghc.environment.*
 
 *.lock
+
+# elm-app
+ikweb-elm/build
+ikweb-elm/elm-stuff
