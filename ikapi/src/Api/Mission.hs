@@ -74,9 +74,8 @@ checkAndUpsertUserMissionSetting
 checkAndUpsertUserMissionSetting uid setting = do
   increment "upsertUserMissionSetting"
   logDebugNS "web" "upserting a user mission setting"
-  fetchMission
-    >=> upsertUserMissionSetting uid (value setting)
-    $ mission setting
+  fetchMission >=> upsertUserMissionSetting uid (value setting) $ mission
+    setting
 
 upsertUserMissionSetting :: MonadIO m => Int64 -> Int -> Int64 -> AppT m Int64
 upsertUserMissionSetting uid value mid = do
@@ -92,12 +91,7 @@ upsertUserMissionSetting uid value mid = do
       now                   <- liftIO getCurrentTime
       newUserMissionSetting <- runDb
         (insertUnique
-          (UserMissionSetting (toSqlKey uid)
-                              (toSqlKey mid)
-                              value
-                              now
-                              now
-          )
+          (UserMissionSetting (toSqlKey uid) (toSqlKey mid) value now now)
         )
       case newUserMissionSetting of
         Nothing ->
