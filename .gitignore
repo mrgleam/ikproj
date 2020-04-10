@@ -28,3 +28,4 @@ cabal.project.local~
 # elm-app
 ikweb-elm/build
 ikweb-elm/elm-stuff
+node_modules
