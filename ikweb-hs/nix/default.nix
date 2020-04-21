@@ -10,6 +10,6 @@ in pkgs.runCommand "ikproj" { inherit client server; } ''
   mkdir -p $out/{bin,static}
   cp ${server}/bin/* $out/bin/
   ${pkgs.closurecompiler}/bin/closure-compiler ${client}/bin/client.jsexe/all.js > $out/static/all.js
-  cp ${miso-xhr-src}/static/*.png $out/static/
+  cp ${ikproj-src}/static/*.png $out/static/
 ''
 
