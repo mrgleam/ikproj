@@ -28,12 +28,13 @@ instance FromJSON Hero
 instance ToJSON Hero
 
 data Model = Model 
-    { heroes_ :: [Hero]
+    { counter_ :: Int
+    , heroes_ :: [Hero]
     , uri_ :: URI
     } deriving (Eq)
 
 initModel :: URI -> Model
-initModel = Model []
+initModel = Model 0 []
 
 
 -- actions
@@ -45,6 +46,8 @@ data Action
     | FetchHeroes
     | SetUri URI
     | ChangeUri URI
+    | Increment
+    | Decrement
     deriving (Eq)
 
 
@@ -52,7 +55,8 @@ data Action
 
 type HomeRoute = View Action
 type AboutRoute = "about" :> View Action
-type ClientRoutes = HomeRoute :<|> AboutRoute
+type CounterRoute = "counter" :> View Action
+type ClientRoutes = HomeRoute :<|> AboutRoute :<|> CounterRoute
 
 homeRoute :: URI
 homeRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @HomeRoute)
@@ -60,6 +64,8 @@ homeRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @HomeRoute)
 aboutRoute :: URI
 aboutRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @AboutRoute)
 
+counterRoute :: URI
+counterRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @CounterRoute)
 
 -- common client/server routes 
 
@@ -84,8 +90,9 @@ mkStatic filename = concat [ms $ show linkStatic, "/", filename]
 
 -- views
 
-clientViews :: (Model -> View Action) :<|> (Model -> View Action)
-clientViews = homeView :<|> aboutView
+clientViews
+    :: (Model -> View Action) :<|> (Model -> View Action) :<|> (Model -> View Action)
+clientViews = homeView :<|> aboutView :<|> counterView
 
 viewModel :: Model -> View Action
 viewModel m = 
@@ -97,6 +104,7 @@ homeView :: Model -> View Action
 homeView m = div_ 
     []
     [ h1_ [] [ text "Heroes - Home" ]
+    , button_ [ onClick $ ChangeUri counterRoute ] [ text "Counter" ]
     , button_ [ onClick $ ChangeUri aboutRoute ] [ text "About" ]
     , button_ [ onClick FetchHeroes ] [ text "FetchHeroes" ]
     , button_ [ onClick PopHeroes ] [ text "PopHeroes" ]
@@ -116,5 +124,13 @@ aboutView _ = div_
     [ h1_ [] [ text "Heroes - About" ]
     , button_ [ onClick $ ChangeUri homeRoute ] [ text "Home" ]
     , p_ [] [ text "This is an isomorphic web app implemented in Haskell !" ]
+    ]
+
+counterView :: Model -> View Action
+counterView m = let x = counter_ m in div_
+    []
+    [ button_ [onClick Increment] [text "+"]
+    , text $ ms $ show x
+    , button_ [onClick Decrement] [text "-"]
     ]
 

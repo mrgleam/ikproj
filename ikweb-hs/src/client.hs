@@ -25,6 +25,8 @@ updateModel (SetHeroes heroes) m = noEff m { heroes_ = heroes }
 updateModel FetchHeroes m = m <# (SetHeroes <$> xhrHeroes)
 updateModel (SetUri uri) m = noEff m { uri_ = uri }
 updateModel (ChangeUri uri) m = m <# (pushURI uri >> pure NoOp)
+updateModel Increment m = let x = counter_ m in noEff m { counter_ = x + 1 }
+updateModel Decrement m = let x = counter_ m in noEff m { counter_ = x - 1 }
 
 xhrHeroes :: IO [Hero]
 xhrHeroes = 
