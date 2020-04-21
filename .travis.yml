@@ -34,5 +34,4 @@ matrix:
 before_script: 
   - echo $TRAVIS_COMMIT_RANGE
   - chmod +x .travis/project-has-new-commits.sh
-  - sudo mkdir /etc/nix && echo 'sandbox = true' | sudo tee /etc/nix/nix.conf
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci && make release; else echo "NO CHANGES SINCE LAST COMMIT"; fi
