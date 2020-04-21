@@ -12,7 +12,10 @@ client:
 
 # run server, in a "nix-shell -A server"
 server:
-	cabal --builddir=dist-server --config-file=config/server.config run server
+	nix-shell -A server --run "cabal --builddir=dist-server --config-file=config/server.config run server"
+
+build-server:
+	nix-shell -A server --run "cabal --builddir=dist-server --config-file=config/server.config build"
 
 clean:
 	rm -rf dist-* static/all.js
