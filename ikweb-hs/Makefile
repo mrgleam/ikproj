@@ -24,5 +24,6 @@ test-ci:
 	@echo "Testing ikweb-hs" && printf '%*s\n' "40" '' | tr ' ' -
 
 release:
-	nix-build nix/docker.nix && docker load < result
+	nix-build nix/default.nix
+	# nix-build nix/docker.nix && docker load < result
 

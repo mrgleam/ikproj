@@ -7,8 +7,7 @@ let
   client = pkgs.haskell.packages.ghcjs.callCabal2nix "ikproj" ../. { };
 
 in pkgs.runCommand "ikproj" { inherit client server; } ''
-  mkdir -p $out/{bin,static}
+  mkdir -p $out/bin/static
   cp ${server}/bin/* $out/bin/
-  ${pkgs.closurecompiler}/bin/closure-compiler ${client}/bin/client.jsexe/all.js > $out/static/all.js
-  cp ${ikproj-src}/static/*.png $out/static/
+  ${pkgs.closurecompiler}/bin/closure-compiler ${client}/bin/client.jsexe/all.js > $out/bin/static/all.js
 ''
