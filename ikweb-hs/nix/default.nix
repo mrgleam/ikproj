@@ -12,4 +12,3 @@ in pkgs.runCommand "ikproj" { inherit client server; } ''
   ${pkgs.closurecompiler}/bin/closure-compiler ${client}/bin/client.jsexe/all.js > $out/static/all.js
   cp ${ikproj-src}/static/*.png $out/static/
 ''
-
