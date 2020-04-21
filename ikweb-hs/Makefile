@@ -20,3 +20,9 @@ build-server:
 clean:
 	rm -rf dist-* static/all.js
 
+test-ci:
+	@echo "Testing ikweb-hs" && printf '%*s\n' "40" '' | tr ' ' -
+
+release:
+	nix-build nix/docker.nix && docker load < result
+

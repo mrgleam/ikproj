@@ -4,6 +4,8 @@ language: generic
 
 matrix:
   include:
+  - env: PROJECT=ikweb-hs/
+    language: nix
   - env: PROJECT=ikweb/
     node_js: lts
     cache:
