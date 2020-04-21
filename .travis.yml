@@ -6,6 +6,16 @@ matrix:
   include:
   - env: PROJECT=ikweb-hs/
     language: nix
+    cache:
+      directories:
+        - $HOME/nix.store
+    before_install:
+      - sudo mkdir -p /etc/nix
+      - echo "substituters = https://cache.nixos.org/ file://$HOME/nix.store" | sudo tee -a /etc/nix/nix.conf > /dev/null
+      - echo 'require-sigs = false' | sudo tee -a /etc/nix/nix.conf > /dev/null
+    before_cache:
+      - mkdir -p $HOME/nix.store
+      - nix copy --to file://$HOME/nix.store -f default.nix buildInputs
   - env: PROJECT=ikweb/
     node_js: lts
     cache:
@@ -24,4 +34,5 @@ matrix:
 before_script: 
   - echo $TRAVIS_COMMIT_RANGE
   - chmod +x .travis/project-has-new-commits.sh
+  - sudo mkdir /etc/nix && echo 'sandbox = true' | sudo tee /etc/nix/nix.conf
 script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci && make release; else echo "NO CHANGES SINCE LAST COMMIT"; fi
