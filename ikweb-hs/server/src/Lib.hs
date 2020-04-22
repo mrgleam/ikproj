@@ -1,29 +1,28 @@
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE PolyKinds                  #-}
-{-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeOperators              #-}
 
+module Lib
+  ( startApp
+  , app
+  )
+where
+
 import           Common
-import           Data.Proxy (Proxy(..))
-import qualified Lucid as L
+import           Data.Proxy                     ( Proxy(..) )
+import qualified Lucid                          as L
 import           Miso
-import           Network.Wai.Handler.Warp (run)
-import           Network.Wai.Middleware.RequestLogger (logStdout)
+import           Network.Wai.Handler.Warp       ( run )
+import           Network.Wai.Middleware.RequestLogger
+                                                ( logStdout )
 import           Servant
-
-
--- main program and data
-
-main :: IO ()
-main = run 3000 $ logStdout $ serve (Proxy @ServerApi) server
 
 heroes :: [Hero]
 heroes = 
     [ Hero "Scooby Doo" "scoobydoo.png"
     , Hero "Sponge Bob" "spongebob.png"
     ]
-
 
 -- server api and app
 
@@ -63,3 +62,14 @@ instance L.ToHtml a => L.ToHtml (HtmlPage a) where
                 (L.script_ mempty) 
                 [L.src_ (mkStatic "all.js"), L.async_ mempty, L.defer_ mempty] 
         L.body_ (L.toHtml x)
+
+    -- run 3000 $ logStdout $ serve (Proxy @ServerApi) server
+
+startApp :: IO ()
+startApp = run 3000 $ logStdout app
+
+app :: Application
+app = serve api server
+
+api :: Proxy ServerApi
+api = Proxy 
