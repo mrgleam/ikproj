@@ -63,4 +63,3 @@ instance L.ToHtml a => L.ToHtml (HtmlPage a) where
                 (L.script_ mempty) 
                 [L.src_ (mkStatic "all.js"), L.async_ mempty, L.defer_ mempty] 
         L.body_ (L.toHtml x)
-
