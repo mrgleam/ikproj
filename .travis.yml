@@ -37,4 +37,4 @@ matrix:
 before_script: 
   - echo $TRAVIS_COMMIT_RANGE
   - chmod +x .travis/project-has-new-commits.sh
-script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci && make release; else echo "NO CHANGES SINCE LAST COMMIT"; fi
+script: if .travis/project-has-new-commits.sh $TRAVIS_COMMIT_RANGE $PROJECT; then cd $PROJECT && make test-ci && travis_wait 60 make release; else echo "NO CHANGES SINCE LAST COMMIT"; fi
