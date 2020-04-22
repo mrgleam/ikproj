@@ -1,3 +1,8 @@
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE TypeOperators     #-}
+
+module Main where
+
 import Common
 import Data.Aeson (decodeStrict)
 import Data.Maybe (fromJust, fromMaybe)

@@ -31,5 +31,5 @@ ikweb-elm/elm-stuff
 node_modules
 
 # ikweb-hs
-ikweb-hs/static
+ikweb-hs/*/static
 ikweb-hs/result
