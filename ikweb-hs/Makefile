@@ -25,6 +25,6 @@ test-ci:
 
 release:
   export CACHIX_SIGNING_KEY=${CACHIX_SIGNING_KEY}
-	nix-build nix/default.nix --argstr system x86_64-linux
+	nix-build nix/default.nix
 	# nix-build nix/docker.nix && docker load < result
 
