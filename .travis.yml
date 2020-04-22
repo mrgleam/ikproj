@@ -17,6 +17,7 @@ matrix:
     before_cache:
       - mkdir -p $HOME/nix.store
       - cd ikweb-hs/common nix copy --to file://$HOME/nix.store -f default.nix --show-trace
+      - cd ikweb-hs/server nix copy --to file://$HOME/nix.store -f default.nix --show-trace
   - env: PROJECT=ikweb/
     node_js: lts
     cache:
