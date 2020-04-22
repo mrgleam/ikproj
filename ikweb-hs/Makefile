@@ -1,3 +1,6 @@
+IMAGE := mathsermone/ikweb
+VERSION := $(shell cat server/server.cabal | grep version | head -1 | awk -F: '{ print $$2 }' | sed 's/[", ]//g')
+
 all: 
 	cd client && nix-shell --run "cabal --builddir=dist-client --config-file=cabal.config build"
 	mkdir -p server/static
@@ -19,6 +22,11 @@ test-ci:
 	@echo "Testing ikweb-hs" && printf '%*s\n' "40" '' | tr ' ' -
 
 release:
-	nix-build
-	# nix-build docker.nix && docker load < result
+	# nix-build > /dev/null 2>&1
+	nix-build docker.nix > /dev/null 2>&1
+	docker load < result && docker tag ikproj:latest ${IMAGE}:${VERSION}
+	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
+	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
+	docker push ${IMAGE}:${VERSION}
+	docker push ${IMAGE}:lates
 
