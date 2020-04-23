@@ -18,4 +18,10 @@ jobs:
       with:
         name: mathsermone
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
-    - run: cd ikweb-hs && nix-build
+    - name: Login to Docker Registry
+      run: docker login -u "$DOCKER_USERNAME" --password-stdin <<< "$DOCKER_PASSWORD"
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build and Push Image
+      run: cd ikweb-hs && make release
