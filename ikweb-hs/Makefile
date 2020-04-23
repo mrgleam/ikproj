@@ -23,6 +23,8 @@ test-ci:
 
 release:
 	nix-build docker.nix && docker load < result
+	docker tag ikproj:latest registry.heroku.com/ikweb-hs/web
+  docker push registry.heroku.com/ikweb-hs/web
 	docker tag ikproj:latest ${IMAGE}:${VERSION}
 	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
 	docker push ${IMAGE}:${VERSION}
