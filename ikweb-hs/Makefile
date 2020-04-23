@@ -22,11 +22,8 @@ test-ci:
 	@echo "Testing ikweb-hs" && printf '%*s\n' "40" '' | tr ' ' -
 
 release:
-	# nix-build > /dev/null 2>&1
-	nix-build docker.nix > /dev/null 2>&1
-	docker load < result && docker tag ikproj:latest ${IMAGE}:${VERSION}
+	nix-build docker.nix && docker load < result
+	docker tag ikproj:latest ${IMAGE}:${VERSION}
 	docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
-	echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin
 	docker push ${IMAGE}:${VERSION}
-	docker push ${IMAGE}:lates
-
+	docker push ${IMAGE}:latest
