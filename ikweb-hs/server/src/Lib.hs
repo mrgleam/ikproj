@@ -10,6 +10,7 @@ module Lib
 where
 
 import           Common
+import           Data.Maybe                     ( fromMaybe )
 import           Data.Proxy                     ( Proxy(..) )
 import qualified Lucid                          as L
 import           Miso
@@ -17,6 +18,7 @@ import           Network.Wai.Handler.Warp       ( run )
 import           Network.Wai.Middleware.RequestLogger
                                                 ( logStdout )
 import           Servant
+import           System.Environment             ( lookupEnv )
 
 heroes :: [Hero]
 heroes = 
@@ -66,7 +68,10 @@ instance L.ToHtml a => L.ToHtml (HtmlPage a) where
     -- run 3000 $ logStdout $ serve (Proxy @ServerApi) server
 
 startApp :: IO ()
-startApp = run 3000 $ logStdout app
+startApp = do
+    port <- read . fromMaybe "3000" <$> lookupEnv "PORT"
+    putStrLn $ "running on port " ++ show port ++ "..."
+    run port $ logStdout app
 
 app :: Application
 app = serve api server
