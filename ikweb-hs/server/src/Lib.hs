@@ -65,8 +65,6 @@ instance L.ToHtml a => L.ToHtml (HtmlPage a) where
                 [L.src_ (mkStatic "all.js"), L.async_ mempty, L.defer_ mempty] 
         L.body_ (L.toHtml x)
 
-    -- run 3000 $ logStdout $ serve (Proxy @ServerApi) server
-
 startApp :: IO ()
 startApp = do
     port <- read . fromMaybe "3000" <$> lookupEnv "PORT"
