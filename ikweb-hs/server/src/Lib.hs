@@ -13,7 +13,9 @@ import           Common
 import           Data.Maybe                     ( fromMaybe )
 import           Data.Proxy                     ( Proxy(..) )
 import qualified Lucid                          as L
+import           Lucid.Base
 import           Miso
+import           Miso.String
 import           Network.Wai.Handler.Warp       ( run )
 import           Network.Wai.Middleware.RequestLogger
                                                 ( logStdout )
@@ -59,11 +61,42 @@ instance L.ToHtml a => L.ToHtml (HtmlPage a) where
     toHtmlRaw = L.toHtml
     toHtml (HtmlPage x) = L.doctypehtml_ $ do
         L.head_ $ do
+            L.title_ "Hello Bulma! & Haskell"
+            L.link_ [ L.rel_ "icon"
+                    , L.href_ (mkStatic "favicon.ico")
+                    , L.type_ "image/x-icon"
+                    ]
             L.meta_ [L.charset_ "utf-8"]
+            L.meta_ [ L.name_ "viewport"
+                    , L.content_ "width=device-width, initial-scale=1"
+                    ]
             L.with 
                 (L.script_ mempty) 
-                [L.src_ (mkStatic "all.js"), L.async_ mempty, L.defer_ mempty] 
+                [L.src_ (mkStatic "all.js"), L.async_ mempty, L.defer_ mempty]
+            cssRef bulmaRef
+            jsRef fontAwesomeRef
         L.body_ (L.toHtml x)
+          where
+            jsRef href =
+              L.with (L.script_ mempty)
+                [ makeAttribute "src" href
+                , makeAttribute "async" mempty
+                , makeAttribute "defer" mempty
+                ]
+            cssRef href =
+              L.with (L.link_ mempty) [
+                  L.rel_ "stylesheet"
+                , L.type_ "text/css"
+                , L.href_ href
+                ]
+
+fontAwesomeRef :: MisoString
+fontAwesomeRef =
+    "https://use.fontawesome.com/releases/v5.3.1/js/all.js"
+
+bulmaRef :: MisoString
+bulmaRef =
+    "https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"
 
 startApp :: IO ()
 startApp = do
