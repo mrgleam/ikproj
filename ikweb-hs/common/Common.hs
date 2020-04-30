@@ -56,7 +56,8 @@ data Action
 type HomeRoute = View Action
 type AboutRoute = "about" :> View Action
 type CounterRoute = "counter" :> View Action
-type ClientRoutes = HomeRoute :<|> AboutRoute :<|> CounterRoute
+type LoginRoute = "login" :> View Action
+type ClientRoutes = HomeRoute :<|> AboutRoute :<|> CounterRoute :<|> LoginRoute
 
 homeRoute :: URI
 homeRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @HomeRoute)
@@ -66,6 +67,9 @@ aboutRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @AboutRoute)
 
 counterRoute :: URI
 counterRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @CounterRoute)
+
+loginRoute :: URI
+loginRoute = linkURI $ safeLink (Proxy @ClientRoutes) (Proxy @LoginRoute)
 
 -- common client/server routes 
 
@@ -91,8 +95,8 @@ mkStatic filename = concat [ms $ show linkStatic, "/", filename]
 -- views
 
 clientViews
-    :: (Model -> View Action) :<|> (Model -> View Action) :<|> (Model -> View Action)
-clientViews = homeView :<|> aboutView :<|> counterView
+    :: (Model -> View Action) :<|> (Model -> View Action) :<|> (Model -> View Action) :<|> (Model -> View Action)
+clientViews = homeView :<|> aboutView :<|> counterView :<|> loginView
 
 viewModel :: Model -> View Action
 viewModel m = 
@@ -104,6 +108,7 @@ homeView :: Model -> View Action
 homeView m = div_ 
     []
     [ h1_ [] [ text "Heroes - Home" ]
+    , button_ [ onClick $ ChangeUri loginRoute ] [ text "Login" ]
     , button_ [ onClick $ ChangeUri counterRoute ] [ text "Counter" ]
     , button_ [ onClick $ ChangeUri aboutRoute ] [ text "About" ]
     , button_ [ onClick FetchHeroes ] [ text "FetchHeroes" ]
@@ -134,3 +139,51 @@ counterView m = let x = counter_ m in div_
     , button_ [onClick Decrement] [text "-"]
     ]
 
+loginView :: Model -> View Action
+loginView _ = section_ [ class_ "hero is-info is-fullheight" ] [
+      div_ [ class_ "hero-body" ] [
+        div_ [ class_ "container" ] [
+          div_ [ class_ "columns is-centered" ] [
+            div_ [ class_ "column is-5-tablet is-4-desktop is-3-widescreen" ] [
+              form_ [ action_ ""
+                    , class_ "box"
+                    ] [
+                      div_ [ class_ "field" ] [
+                        label_ [ for_ ""
+                               , class_ "label"
+                               ] [ text "Email" ]
+                        , div_ [ class_ "control has-icons-left" ] [
+                          input_ [ type_ "email"
+                                 , placeholder_ "e.g. test@test.com"
+                                 , class_ "input"
+                                 , required_ True
+                                 ]
+                          , span_ [ class_ "icon is-small is-left" ] [
+                            i_ [ class_ "fa fa-envelope" ] []
+                          ]
+                        ]
+                      ]
+                      , div_ [ class_ "field" ] [
+                        label_ [ for_ ""
+                               , class_ "label"
+                               ] [ text "Password" ]
+                        , div_ [ class_ "control has-icons-left" ] [
+                          input_ [ type_ "password"
+                                 , placeholder_ "********"
+                                 , class_ "input"
+                                 , required_ True
+                                 ]
+                          , span_ [ class_ "icon is-small is-left" ] [
+                            i_ [ class_ "fa fa-lock" ] []
+                          ]
+                        ]
+                      ]
+                      , div_ [ class_ "field" ] [
+                        button_ [ class_ "button is-info" ] [ text "Login" ]
+                      ]
+                    ]
+            ]
+          ]
+        ]
+      ]
+    ]
