@@ -41,7 +41,7 @@ server
     =    pure heroes
     :<|> (\ x y -> pure $ x + y)
     :<|> serveDirectoryFileServer "static"
-    :<|> (handleHome :<|> handleAbout :<|> handleCounter :<|> handleLogin)
+    :<|> (handleHome :<|> handleAbout :<|> handleCounter :<|> handleLogin :<|> handleSignup)
 
 handleHome :: Handler (HtmlPage (View Action))
 handleHome = pure $ HtmlPage $ homeView $ initModel homeRoute
@@ -54,6 +54,10 @@ handleCounter = pure $ HtmlPage $ counterView $ initModel counterRoute
 
 handleLogin :: Handler (HtmlPage (View Action))
 handleLogin = pure $ HtmlPage $ loginView $ initModel loginRoute
+
+handleSignup:: Handler (HtmlPage (View Action))
+handleSignup= pure $ HtmlPage $ signupView $ initModel signupRoute 
+
 
 -- view rendering
 
