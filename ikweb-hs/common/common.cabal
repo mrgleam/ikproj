@@ -14,4 +14,5 @@ library
                     lens,
                     miso,
                     network-uri,
-                    servant
+                    servant,
+                    time
