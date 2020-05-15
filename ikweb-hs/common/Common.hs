@@ -228,27 +228,7 @@ homeView Model {..} = div_
   , button_ [onClick $ ChangeUri aboutRoute]   [text "About"]
   , button_ [onClick FetchHeroes]              [text "FetchHeroes"]
   , button_ [onClick PopHeroes]                [text "PopHeroes"]
-  , nav_
-    [class_ "level is-mobile"]
-    [ case covidInfo_ of
-        Nothing -> div_
-          [class_ "level-item has-text-centered"]
-          [ div_
-              []
-              [ p_ [class_ "heading"] [text "Global"]
-              , p_ [class_ "title"]   [text "No data"]
-              ]
-          ]
-        Just CovidSummaryInfo {..} -> div_
-          [class_ "level-item has-text-centered"]
-          [ div_
-              []
-              [ p_ [class_ "heading"] [text "Covid Total Confirmed"]
-              , p_ [class_ "title"]
-                   [text $ ms $ show (fmtGlobalTotalConfirmed global)]
-              ]
-          ]
-    ]
+  , nav_ [class_ "level is-mobile"] (fmtCovid covidInfo_)
   , ul_ [] (map fmtHero heroes_)
   , p_ [] [a_ [href_ $ ms $ show linkHeroes] [text "GET: heroes"]]
   , p_ [] [a_ [href_ $ ms $ show $ linkAdd 20 22] [text "GET: add 20 22"]]
@@ -256,7 +236,119 @@ homeView Model {..} = div_
  where
   fmtHero h =
     li_ [] [text $ heroName h, br_ [], img_ [src_ $ mkStatic (heroImage h)]]
+  fmtCovid c = case c of
+    Nothing ->
+      [ div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid New Confirmed"]
+            , p_ [class_ "title"]   [text "No data"]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid Total Confirmed"]
+            , p_ [class_ "title"]   [text "No data"]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid New Deaths"]
+            , p_ [class_ "title"]   [text "No data"]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid Total Deaths"]
+            , p_ [class_ "title"]   [text "No data"]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid New Recovered"]
+            , p_ [class_ "title"]   [text "No data"]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid Total Recovered"]
+            , p_ [class_ "title"]   [text "No data"]
+            ]
+        ]
+      ]
+    Just CovidSummaryInfo {..} ->
+      [ div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid New Confirmed"]
+            , p_ [class_ "title"]
+                 [text $ ms $ show (fmtGlobalNewConfirmed global)]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid Total Confirmed"]
+            , p_ [class_ "title"]
+                 [text $ ms $ show (fmtGlobalTotalConfirmed global)]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid New Deaths"]
+            , p_ [class_ "title"] [text $ ms $ show (fmtGlobalNewDeaths global)]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid Total Deaths"]
+            , p_ [class_ "title"]
+                 [text $ ms $ show (fmtGlobalTotalDeaths global)]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid New Recovered"]
+            , p_ [class_ "title"]
+                 [text $ ms $ show (fmtGlobalNewRecovered global)]
+            ]
+        ]
+      , div_
+        [class_ "level-item has-text-centered"]
+        [ div_
+            []
+            [ p_ [class_ "heading"] [text "Covid Total Recovered"]
+            , p_ [class_ "title"]
+                 [text $ ms $ show (fmtGlobalTotalRecovered global)]
+            ]
+        ]
+      ]
   fmtGlobalTotalConfirmed CovidSummaryGlobalInfo {..} = totalConfirmed
+  fmtGlobalNewConfirmed CovidSummaryGlobalInfo {..} = newConfirmed
+  fmtGlobalNewDeaths CovidSummaryGlobalInfo {..} = newDeaths
+  fmtGlobalTotalDeaths CovidSummaryGlobalInfo {..} = totalDeaths
+  fmtGlobalNewRecovered CovidSummaryGlobalInfo {..} = newRecovered
+  fmtGlobalTotalRecovered CovidSummaryGlobalInfo {..} = totalRecovered
+
 
 aboutView :: Model -> View Action
 aboutView _ = div_
