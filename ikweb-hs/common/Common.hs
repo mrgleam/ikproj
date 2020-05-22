@@ -552,7 +552,7 @@ loginView Model {..} = div_
                           ]
                         , div_
                           [class_ "field"]
-                          [button_ [class_ "button is-info"] [text "Login"]]
+                          [button_ [class_ "button is-primary"] [text "Login"]]
                         ]
                     ]
                 ]
@@ -562,88 +562,92 @@ loginView Model {..} = div_
   ]
 
 signupView :: Model -> View Action
-signupView _ = section_
-  [class_ "hero is-info is-fullheight"]
-  [ div_
-      [class_ "hero-body"]
-      [ div_
-          [class_ "container"]
-          [ div_
-              [class_ "columns is-centered"]
-              [ div_
-                  [class_ "column is-5-tablet is-4-desktop is-3-widescreen"]
-                  [ form_
-                      [action_ "", class_ "box"]
-                      [ div_
-                        [class_ "field"]
-                        [ label_ [for_ "", class_ "label"] [text "Email"]
-                        , div_
-                          [class_ "control has-icons-left"]
-                          [ input_
-                            [ type_ "email"
-                            , placeholder_ "e.g. test@test.com"
-                            , class_ "input"
-                            , required_ True
+signupView Model {..} = div_
+  []
+  [ section_
+      [class_ "hero is-primary is-bold has-text-centered is-fullheight"]
+      [ div_ [class_ "hero-head"] [navBar uri_ navMenuOpen_]
+      , div_
+        [class_ "hero-body"]
+        [ div_
+            [class_ "container"]
+            [ div_
+                [class_ "columns is-centered"]
+                [ div_
+                    [class_ "column is-5-tablet is-4-desktop is-3-widescreen"]
+                    [ form_
+                        [action_ "", class_ "box"]
+                        [ div_
+                          [class_ "field"]
+                          [ label_ [for_ "", class_ "label"] [text "Email"]
+                          , div_
+                            [class_ "control has-icons-left"]
+                            [ input_
+                              [ type_ "email"
+                              , placeholder_ "e.g. test@test.com"
+                              , class_ "input"
+                              , required_ True
+                              ]
+                            , span_ [class_ "icon is-small is-left"]
+                                    [i_ [class_ "fa fa-envelope"] []]
                             ]
-                          , span_ [class_ "icon is-small is-left"]
-                                  [i_ [class_ "fa fa-envelope"] []]
+                          ]
+                        , div_
+                          [class_ "field"]
+                          [ label_ [for_ "", class_ "label"] [text "Password"]
+                          , div_
+                            [class_ "control has-icons-left"]
+                            [ input_
+                              [ type_ "password"
+                              , placeholder_ "********"
+                              , class_ "input"
+                              , required_ True
+                              ]
+                            , span_ [class_ "icon is-small is-left"]
+                                    [i_ [class_ "fa fa-lock"] []]
+                            ]
+                          ]
+                        , div_
+                          [class_ "field"]
+                          [ label_ [for_ "", class_ "label"]
+                                   [text "Confirm Password"]
+                          , div_
+                            [class_ "control has-icons-left"]
+                            [ input_
+                              [ type_ "password"
+                              , placeholder_ "********"
+                              , class_ "input"
+                              , required_ True
+                              ]
+                            , span_ [class_ "icon is-small is-left"]
+                                    [i_ [class_ "fa fa-lock"] []]
+                            ]
+                          ]
+                        , div_
+                          [class_ "field"]
+                          [ button_ [class_ "button is-primary"]
+                                    [text "Create account"]
                           ]
                         ]
-                      , div_
-                        [class_ "field"]
-                        [ label_ [for_ "", class_ "label"] [text "Password"]
-                        , div_
-                          [class_ "control has-icons-left"]
-                          [ input_
-                            [ type_ "password"
-                            , placeholder_ "********"
-                            , class_ "input"
-                            , required_ True
-                            ]
-                          , span_ [class_ "icon is-small is-left"]
-                                  [i_ [class_ "fa fa-lock"] []]
-                          ]
-                        ]
-                      , div_
-                        [class_ "field"]
-                        [ label_ [for_ "", class_ "label"]
-                                 [text "Confirm Password"]
-                        , div_
-                          [class_ "control has-icons-left"]
-                          [ input_
-                            [ type_ "password"
-                            , placeholder_ "********"
-                            , class_ "input"
-                            , required_ True
-                            ]
-                          , span_ [class_ "icon is-small is-left"]
-                                  [i_ [class_ "fa fa-lock"] []]
-                          ]
-                        ]
-                      , div_
-                        [class_ "field"]
-                        [ button_ [class_ "button is-info"]
-                                  [text "Create account"]
-                        ]
-                      ]
-                  ]
-              ]
-          ]
+                    ]
+                ]
+            ]
+        ]
       ]
   ]
 
 navBar :: URI -> Bool -> View Action
 navBar uri' navMenuOpen' = header_
-  [ class_ "navbar is-fixed-top" ]
+  [class_ "navbar is-fixed-top"]
   [ div_
-    [ class_ "navbar-brand" ]
+    [class_ "navbar-brand"]
     [ a_
       [class_ "navbar-item", href_ "/", onPreventClick (ChangeUri homeRoute)]
       [text "Logo"]
     , a_
       [ class_ $ "navbar-burger" <> bool mempty " is-active" navMenuOpen'
-      , textProp (pack "data-target") (pack "navbarMenu")
-      , textProp (pack "aria-label") (pack "menu")
+      , textProp (pack "data-target")   (pack "navbarMenu")
+      , textProp (pack "aria-label")    (pack "menu")
       , textProp (pack "aria-expanded") (pack "false")
       , onClick ToggleNavMenu
       ]
