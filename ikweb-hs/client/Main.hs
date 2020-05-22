@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Main where
 
@@ -29,11 +30,12 @@ updateModel PopHeroes m =
 updateModel (SetHeroes heroes) m = noEff m { heroes_ = heroes }
 updateModel FetchHeroes m = m <# (SetHeroes <$> xhrHeroes)
 updateModel (SetUri uri) m = noEff m { uri_ = uri }
-updateModel (ChangeUri uri) m = m <# (pushURI uri >> pure NoOp)
+updateModel (ChangeUri uri) m = m { navMenuOpen_ = False } <# (pushURI uri >> pure NoOp)
 updateModel Increment m = let x = counter_ m in noEff m { counter_ = x + 1 }
 updateModel Decrement m = let x = counter_ m in noEff m { counter_ = x - 1 }
 updateModel (SetCovidSummaryInfo covidInfo) m = noEff m { covidInfo_ = Just covidInfo }
 updateModel FetchCovidSummaryInfo m = m <# (SetCovidSummaryInfo <$> getCovidAPISummaryInfo)
+updateModel ToggleNavMenu m@Model{..} = m { navMenuOpen_ = not navMenuOpen_ } <# pure NoOp
 
 xhrHeroes :: IO [Hero]
 xhrHeroes = 
