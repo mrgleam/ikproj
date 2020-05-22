@@ -104,10 +104,6 @@ pascalCaseCovidSummaryCountryInfoParser =
                                }
       )
 
--- instance FromJSON CovidSummaryCountryInfo where
---   parseJSON =
---     genericParseJSON defaultOptions { fieldLabelModifier = camelTo2 '_' }
-
 data CovidSummaryInfo = CovidSummaryInfo
     { global :: CovidSummaryGlobalInfo
     , countries :: [CovidSummaryCountryInfo]
@@ -638,14 +634,14 @@ signupView _ = section_
 
 navBar :: URI -> Bool -> View Action
 navBar uri' navMenuOpen' = header_
-  [class_ "navbar is-fixed-top has-shadow"]
+  [ class_ "navbar is-fixed-top" ]
   [ div_
-    [class_ "navbar-brand"]
+    [ class_ "navbar-brand" ]
     [ a_
       [class_ "navbar-item", href_ "/", onPreventClick (ChangeUri homeRoute)]
       [text "Logo"]
     , a_
-      [ class_ $ "navbar-burger " <> bool mempty "is-active" navMenuOpen'
+      [ class_ $ "navbar-burger" <> bool mempty " is-active" navMenuOpen'
       , textProp (pack "data-target") (pack "navbarMenu")
       , textProp (pack "aria-label") (pack "menu")
       , textProp (pack "aria-expanded") (pack "false")
@@ -658,23 +654,23 @@ navBar uri' navMenuOpen' = header_
     ]
   , div_
     [ id_ "navbarMenu"
-    , class_ $ "navbar-menu " <> bool mempty "is-active" navMenuOpen'
+    , class_ $ "navbar-menu" <> bool mempty " is-active" navMenuOpen'
     ]
     [ div_
       [class_ "navbar-start"]
       [ a_
-        [ class_ $ "navbar-item " <> bool
+        [ class_ $ "navbar-item" <> bool
           mempty
-          "is-active"
+          " is-active"
           (uriPath uri' == "/" ++ uriPath homeRoute)
         , href_ "/"
         , onPreventClick (ChangeUri homeRoute)
         ]
         [text "Home"]
       , a_
-        [ class_ $ "navbar-item " <> bool
+        [ class_ $ "navbar-item" <> bool
           mempty
-          "is-active"
+          " is-active"
           (uriPath uri' == "/" ++ uriPath aboutRoute)
         , href_ "/about"
         , onPreventClick (ChangeUri aboutRoute)
