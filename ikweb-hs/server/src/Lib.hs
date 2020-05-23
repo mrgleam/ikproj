@@ -17,6 +17,7 @@ import           Lucid.Base
 import           Miso
 import           Miso.String
 import           Network.Wai.Handler.Warp       ( run )
+import           Network.Wai.Middleware.Gzip
 import           Network.Wai.Middleware.RequestLogger
                                                 ( logStdout )
 import           Servant
@@ -109,7 +110,9 @@ startApp :: IO ()
 startApp = do
     port <- read . fromMaybe "3000" <$> lookupEnv "PORT"
     putStrLn $ "running on port " ++ show port ++ "..."
-    run port $ logStdout app
+    run port $ logStdout (compress app)
+        where
+            compress = gzip def { gzipFiles = GzipCompress }
 
 app :: Application
 app = serve api server
