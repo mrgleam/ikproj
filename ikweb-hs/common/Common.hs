@@ -10,10 +10,10 @@ module Common where
 
 import           Data.Aeson              hiding ( defaultOptions )
 import           Data.Aeson.Types        hiding ( defaultOptions )
-import           Data.Int                       ( Int64 )
 import           Data.Time
 import           Data.Maybe
 import           Data.Bool
+import           Data.Text.Format.Numbers
 import           Data.Proxy                     ( Proxy(..) )
 import           GHC.Generics                   ( Generic )
 import           Miso
@@ -29,12 +29,12 @@ import           Servant.Links
 
 -- model
 data CovidSummaryGlobalInfo = CovidSummaryGlobalInfo
-    { newConfirmed :: Int64
-    , totalConfirmed :: Int64
-    , newDeaths :: Int64
-    , totalDeaths :: Int64
-    , newRecovered :: Int64
-    , totalRecovered :: Int64
+    { newConfirmed :: Int
+    , totalConfirmed :: Int
+    , newDeaths :: Int
+    , totalDeaths :: Int
+    , newRecovered :: Int
+    , totalRecovered :: Int
     } deriving (Show, Eq, Generic)
 
 instance FromJSON CovidSummaryGlobalInfo where
@@ -64,12 +64,12 @@ data CovidSummaryCountryInfo = CovidSummaryCountryInfo
     { country :: String
     , countryCode :: String
     , slug :: String
-    , newConfirmed :: Int64
-    , totalConfirmed :: Int64
-    , newDeaths :: Int64
-    , totalDeaths :: Int64
-    , newRecovered :: Int64
-    , totalRecovered :: Int64
+    , newConfirmed :: Int
+    , totalConfirmed :: Int
+    , newDeaths :: Int
+    , totalDeaths :: Int
+    , newRecovered :: Int
+    , totalRecovered :: Int
     , date :: UTCTime
     } deriving (Show, Eq, Generic)
 
@@ -287,7 +287,7 @@ homeView Model {..} = div_
             []
             [ p_ [class_ "heading"] [text "Covid New Confirmed"]
             , p_ [class_ "title"]
-                 [text $ ms $ show (fmtGlobalNewConfirmed global)]
+                 [text $ ms (fmtGlobalNewConfirmed global)]
             ]
         ]
       , div_
@@ -296,7 +296,7 @@ homeView Model {..} = div_
             []
             [ p_ [class_ "heading"] [text "Covid Total Confirmed"]
             , p_ [class_ "title"]
-                 [text $ ms $ show (fmtGlobalTotalConfirmed global)]
+                 [text $ ms (fmtGlobalTotalConfirmed global)]
             ]
         ]
       , div_
@@ -304,7 +304,7 @@ homeView Model {..} = div_
         [ div_
             []
             [ p_ [class_ "heading"] [text "Covid New Deaths"]
-            , p_ [class_ "title"] [text $ ms $ show (fmtGlobalNewDeaths global)]
+            , p_ [class_ "title"] [text $ ms (fmtGlobalNewDeaths global)]
             ]
         ]
       , div_
@@ -313,7 +313,7 @@ homeView Model {..} = div_
             []
             [ p_ [class_ "heading"] [text "Covid Total Deaths"]
             , p_ [class_ "title"]
-                 [text $ ms $ show (fmtGlobalTotalDeaths global)]
+                 [text $ ms (fmtGlobalTotalDeaths global)]
             ]
         ]
       , div_
@@ -322,7 +322,7 @@ homeView Model {..} = div_
             []
             [ p_ [class_ "heading"] [text "Covid New Recovered"]
             , p_ [class_ "title"]
-                 [text $ ms $ show (fmtGlobalNewRecovered global)]
+                 [text $ ms (fmtGlobalNewRecovered global)]
             ]
         ]
       , div_
@@ -331,16 +331,21 @@ homeView Model {..} = div_
             []
             [ p_ [class_ "heading"] [text "Covid Total Recovered"]
             , p_ [class_ "title"]
-                 [text $ ms $ show (fmtGlobalTotalRecovered global)]
+                 [text $ ms (fmtGlobalTotalRecovered global)]
             ]
         ]
       ]
-  fmtGlobalTotalConfirmed CovidSummaryGlobalInfo {..} = totalConfirmed
-  fmtGlobalNewConfirmed CovidSummaryGlobalInfo {..} = newConfirmed
-  fmtGlobalNewDeaths CovidSummaryGlobalInfo {..} = newDeaths
-  fmtGlobalTotalDeaths CovidSummaryGlobalInfo {..} = totalDeaths
-  fmtGlobalNewRecovered CovidSummaryGlobalInfo {..} = newRecovered
-  fmtGlobalTotalRecovered CovidSummaryGlobalInfo {..} = totalRecovered
+  fmtGlobalTotalConfirmed CovidSummaryGlobalInfo {..} =
+    (prettyI $ Just ',') totalConfirmed
+  fmtGlobalNewConfirmed CovidSummaryGlobalInfo {..} =
+    (prettyI $ Just ',') newConfirmed
+  fmtGlobalNewDeaths CovidSummaryGlobalInfo {..} = (prettyI $ Just ',') newDeaths
+  fmtGlobalTotalDeaths CovidSummaryGlobalInfo {..} =
+    (prettyI $ Just ',') totalDeaths
+  fmtGlobalNewRecovered CovidSummaryGlobalInfo {..} =
+    (prettyI $ Just ',') newRecovered
+  fmtGlobalTotalRecovered CovidSummaryGlobalInfo {..} =
+    (prettyI $ Just ',') totalRecovered
 
 -- homeView :: Model -> View Action
 -- homeView Model {..} = div_

@@ -15,4 +15,5 @@ library
                     miso,
                     network-uri,
                     servant,
-                    time
+                    time,
+                    format-numbers
