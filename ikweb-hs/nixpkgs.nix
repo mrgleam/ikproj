@@ -41,6 +41,8 @@ let
                 servant-client = dontCheck (doJailbreak super.servant-client);
                 servant = dontCheck (doJailbreak super.servant);
 
+                format-numbers = dontCheck super.format-numbers;
+
                 foundation = pkgs.lib.flip whenGhcjs super.foundation (package:
                   overrideCabal package (drv: {
                     postPatch = (drv.postPatch or "")
