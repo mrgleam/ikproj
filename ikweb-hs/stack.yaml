@@ -1,1 +1,6 @@
-resolver: lts-14.2
+resolver: lts-14.27
+
+packages:
+  - server
+  - common
+  - client
